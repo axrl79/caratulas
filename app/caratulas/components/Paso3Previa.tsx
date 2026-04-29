@@ -215,7 +215,7 @@ export default function Paso3Previa({
   // ── Estilos generales ──
   const card: React.CSSProperties = {
     background: C.cardBg, border: `1px solid ${C.border}`, borderRadius: 20,
-    padding: 40, boxShadow: C.glow, backdropFilter: "blur(12px)", transition: "all 0.3s ease",
+    padding: "clamp(20px, 5vw, 40px)", boxShadow: C.glow, backdropFilter: "blur(12px)", transition: "all 0.3s ease",
   };
   const secLabel: React.CSSProperties = {
     fontSize: "0.82em", textTransform: "uppercase", letterSpacing: 2,
@@ -546,7 +546,7 @@ export default function Paso3Previa({
             fontSize: fs(7.5),
           }}>
             <div style={{ fontWeight: 900 }}>SELLO DE CONFORMIDAD:</div>
-            {/* QR: 30mm × 30mm igual que el PDF */}
+            {/* QR: 35mm × 35mm optimizado para móviles */}
             {documentQRUrl && (
               <img src={documentQRUrl} alt="QR" style={{
                 display: "block",
@@ -630,16 +630,16 @@ export default function Paso3Previa({
         </div>
       )}
 
-      <div style={{ display: "flex", gap: 36, flexWrap: "wrap", marginBottom: 40 }}>
+      <div style={{ display: "flex", gap: "clamp(16px, 4vw, 36px)", flexWrap: "wrap", marginBottom: 40 }}>
 
         {/* COLUMNA IZQUIERDA: preview + SHA256 + QR */}
-        <div style={{ flex: "2", minWidth: 360 }}>
+        <div style={{ flex: "1 1 360px", minWidth: 0 }}>
           <div style={{ ...secLabel, marginBottom: 16 }}>📄 Documento Final (Mismo que PDF)</div>
-          <div ref={previewRef}><PdfPreview /></div>
+          <div ref={previewRef} style={{ width: "100%", overflow: "hidden" }}><PdfPreview /></div>
 
           {/* SHA256 + QR debajo de la preview */}
           <div style={{
-            marginTop: 20, display: "grid", gridTemplateColumns: "1fr auto",
+            marginTop: 20, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
             gap: 20, alignItems: "start", background: C.boxBg,
             border: `1px solid ${C.border}`, borderRadius: 16, padding: 20,
           }}>
@@ -656,7 +656,7 @@ export default function Paso3Previa({
               <div style={{ ...secLabel, marginBottom: 4, fontSize: "0.75em" }}>📱 QR ID</div>
               {documentQRUrl ? (
                 <div style={{ background: "#fff", padding: 10, borderRadius: 12, border: `2px solid ${C.border}`, boxShadow: C.glow }}>
-                  <img src={documentQRUrl} alt="QR ID" style={{ display: "block", width: "25mm", height: "25mm" }} />
+                  <img src={documentQRUrl} alt="QR ID" style={{ display: "block", width: "25mm", height: "25mm", maxWidth: "100%" }} />
                 </div>
               ) : (
                 <div style={{ width: 120, height: 120, background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)", borderRadius: 12, border: `2px dashed ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center", color: C.textMuted, fontSize: "0.75em", fontWeight: 600 }}>
@@ -671,7 +671,7 @@ export default function Paso3Previa({
         </div>
 
         {/* COLUMNA DERECHA: botones de acceso a documentos complementarios */}
-        <div style={{ flex: "0 0 auto", minWidth: 240, maxWidth: 280 }}>
+        <div style={{ flex: "1 1 240px", maxWidth: "100%" }}>
           <div style={{ ...secLabel, marginBottom: 16 }}>📎 Documentos Complementarios</div>
           <div style={{ fontSize: "0.8em", color: C.textMuted, marginBottom: 16, lineHeight: 1.6, fontWeight: 500, background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)", border: `1px solid ${C.border}`, borderRadius: 10, padding: "10px 14px" }}>
             💡 Haz clic para abrir el panel de carga en el asistente.
@@ -688,16 +688,16 @@ export default function Paso3Previa({
       </div>
 
       {/* Botones de navegación */}
-      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 32 }}>
-        <button onClick={goBack} disabled={isGenerating} style={btnSecondary}
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 16, marginTop: 32, flexWrap: "wrap" }}>
+        <button onClick={goBack} disabled={isGenerating} style={{ ...btnSecondary, flex: "1 1 auto" }}
           onMouseOver={e => { if (!isGenerating) e.currentTarget.style.background = C.btnSecHover; }}
           onMouseOut={e => { if (!isGenerating) e.currentTarget.style.background = C.btnSecBg; }}>
           ← Editar datos
         </button>
-        <button onClick={handleGeneratePDF} disabled={isGenerating} style={btnPrimary}
+        <button onClick={handleGeneratePDF} disabled={isGenerating} style={{ ...btnPrimary, flex: "1 1 auto" }}
           onMouseOver={e => { if (!isGenerating) e.currentTarget.style.transform = "translateY(-2px)"; }}
           onMouseOut={e => { e.currentTarget.style.transform = "translateY(0)"; }}>
-          {isGenerating ? "Generando Documento..." : "Generar Documento Final →"}
+          {isGenerating ? "Generando..." : "Generar Documento →"}
         </button>
       </div>
     </div>

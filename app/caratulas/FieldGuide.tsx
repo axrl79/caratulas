@@ -222,6 +222,7 @@ interface FieldGuideProps {
   setFilesPlanos?: React.Dispatch<React.SetStateAction<File[]>>;
   filesPlanosArq?: File[];
   setFilesPlanosArq?: React.Dispatch<React.SetStateAction<File[]>>;
+  onClose?: () => void;
 }
 
 // ─── MAPA ────────────────────────────────────────────────────────────────────
@@ -432,6 +433,7 @@ export default function FieldGuide({
   filesMemoria = [], setFilesMemoria,
   filesPlanos = [], setFilesPlanos,
   filesPlanosArq = [], setFilesPlanosArq,
+  onClose,
 }: FieldGuideProps) {
   const guide = activeGuideKey ? getDynamicGuide(activeGuideKey, cat || null) : null;
   const isMapField = activeGuideKey ? MAP_FIELDS.includes(activeGuideKey) : false;
@@ -455,8 +457,16 @@ export default function FieldGuide({
   const logoSrc = logoData ? (isDark ? logoData.dark : logoData.light) : null;
 
   return (
-    <div style={{ width: "100%", height: "100%", background: theme.boxBg, borderLeft: `1px solid ${theme.border}`, display: "flex", flexDirection: "column", overflowY: "hidden", transition: "all 0.3s ease" }}>
+    <div style={{ width: "100%", height: "100%", background: theme.boxBg, borderLeft: "var(--guide-border)", display: "flex", flexDirection: "column", overflowY: "hidden", transition: "all 0.3s ease" }}>
       <style>{`
+        :root {
+          --guide-border: 1px solid ${theme.border};
+        }
+        @media (max-width: 1024px) {
+          :root {
+            --guide-border: none;
+          }
+        }
         @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes logoFadeIn { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
         .gt { width:100%; border-collapse:collapse; margin-top: 8px; }
@@ -473,8 +483,18 @@ export default function FieldGuide({
         <div style={{ fontSize: 11, color: theme.accent, textTransform: "uppercase", letterSpacing: 2, marginBottom: 6, fontWeight: 800 }}>
           {isUploadKey ? "📎 Carga de Documentos" : isMapField ? "🗺️ Ubicación Espacial" : "💡 Asistente S.I.B."}
         </div>
-        <div style={{ fontSize: 18, color: theme.textMain, fontWeight: 800, lineHeight: 1.3 }}>
-          {guide?.title || activeGuideKey || "Panel de Ayuda"}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ fontSize: 18, color: theme.textMain, fontWeight: 800, lineHeight: 1.3 }}>
+            {guide?.title || activeGuideKey || "Panel de Ayuda"}
+          </div>
+          {onClose && (
+            <button 
+              onClick={onClose}
+              style={{ background: "transparent", border: "none", color: theme.textMuted, fontSize: 24, cursor: "pointer", padding: "0 4px" }}
+            >
+              ×
+            </button>
+          )}
         </div>
       </div>
 

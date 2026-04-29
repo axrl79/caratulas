@@ -20,7 +20,10 @@ export default function Paso1Categoria({
 }: Paso1CategoriaProps) {
 
   // Estilos locales
-  const card: React.CSSProperties = { background: C.cardBg, border: `1px solid ${C.border}`, borderRadius: 20, padding: 40, boxShadow: C.glow, backdropFilter: "blur(12px)", transition: "all 0.3s ease" };
+  const card: React.CSSProperties = { 
+    background: C.cardBg, border: `1px solid ${C.border}`, borderRadius: 20, 
+    padding: "clamp(20px, 5vw, 40px)", boxShadow: C.glow, backdropFilter: "blur(12px)", transition: "all 0.3s ease" 
+  };
   const secLabel: React.CSSProperties = { fontSize: "0.85em", textTransform: "uppercase", letterSpacing: 2, color: C.accent, fontWeight: 800, marginBottom: 20, display: "flex", alignItems: "center", gap: 12 };
   const btnPrimary: React.CSSProperties = { background: C.accent, color: themeMode === "light" ? "#fff" : C.deepGreen, border: "none", borderRadius: 10, padding: "14px 32px", fontWeight: 700, fontSize: "1em", cursor: "pointer", transition: "all 0.2s", boxShadow: `0 4px 14px ${C.border}` };
   
@@ -42,7 +45,7 @@ export default function Paso1Categoria({
         Pasa el cursor sobre las opciones para ver su definición en el Asistente Técnico a la derecha.
       </div>
       
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, marginBottom: 40 }}>
+      <div className="paso1-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24, marginBottom: 40 }}>
         {/* Columna 1 */}
         <div>
           <div style={secLabel}>1. Categoría Principal</div>

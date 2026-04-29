@@ -40,7 +40,7 @@ export default function ModalAjustes({
 
         {/* TEMAS */}
         <div style={secLabel}>Modo de Interfaz</div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 32 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 16, marginBottom: 32 }}>
           {(Object.keys(THEMES) as Array<keyof typeof THEMES>).map(t => (
             <button key={t} onClick={() => setThemeMode(t)} style={{ padding: "20px 10px", borderRadius: 12, background: themeMode === t ? C.accentLight : C.inputBg, border: `2px solid ${themeMode === t ? C.accent : C.border}`, color: C.textMain, fontWeight: 700, cursor: "pointer", transition: "all 0.2s" }}>
               {THEMES[t].name}
@@ -50,7 +50,7 @@ export default function ModalAjustes({
 
         {/* FUENTES */}
         <div style={secLabel}>Estilo de Fuente</div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 32 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 12, marginBottom: 32 }}>
           {FONT_STYLES.map(font => (
             <button key={font.id} onClick={() => setAppFont(font.id)} style={{ padding: "16px", borderRadius: 12, textAlign: "left", background: appFont === font.id ? C.accentLight : C.inputBg, border: `2px solid ${appFont === font.id ? C.accent : C.border}`, color: C.textMain, cursor: "pointer" }}>
               <div style={{ fontFamily: font.id, fontWeight: 700, fontSize: "1.1em", marginBottom: 4 }}>{font.name}</div>
@@ -61,9 +61,9 @@ export default function ModalAjustes({
 
         {/* TAMAÑOS */}
         <div style={secLabel}>Tamaño de Letra</div>
-        <div style={{ display: "flex", gap: 12 }}>
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
           {FONT_SIZES.map(size => (
-            <button key={size.value} onClick={() => setAppFontSize(size.value)} style={{ flex: 1, padding: "12px", borderRadius: 12, background: appFontSize === size.value ? C.accentLight : C.inputBg, border: `2px solid ${appFontSize === size.value ? C.accent : C.border}`, color: C.textMain, fontWeight: 700, cursor: "pointer", textAlign: "center" }}>
+            <button key={size.value} onClick={() => setAppFontSize(size.value)} style={{ flex: "1 1 100px", padding: "12px", borderRadius: 12, background: appFontSize === size.value ? C.accentLight : C.inputBg, border: `2px solid ${appFontSize === size.value ? C.accent : C.border}`, color: C.textMain, fontWeight: 700, cursor: "pointer", textAlign: "center" }}>
               {size.label} <br/><span style={{ fontSize: "0.8em", color: C.textMuted, fontWeight: 400 }}>{size.value}</span>
             </button>
           ))}

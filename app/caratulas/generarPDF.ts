@@ -342,11 +342,11 @@ doc.text(cat.subtitulo_caratula, pageWidth / 2, g2mm(G.subtituloY) + Y_OFFSET.ti
   doc.setFontSize(7.5);
   doc.text("SELLO DE CONFORMIDAD:", g2mm(G.conformidad.x) + 2, g2mm(G.conformidad.y) + infBase + Y_OFFSET.conformidad);
 
-  // QR en columna de conformidad (2.5 cm x 2.5 cm para escaneo fácil)
+  // QR en columna de conformidad (3.5 cm x 3.5 cm para escaneo fácil desde móviles)
   if (qrDataUrl) {
     const qrX = g2mm(G.conformidad.x) + 2;
     const qrY = g2mm(G.conformidad.y) + infBase + Y_OFFSET.conformidad + 3;
-    const qrS = 25;
+    const qrS = 25; // Reducido a 2.5cm por solicitud del usuario
     doc.addImage(qrDataUrl, "PNG", qrX, qrY, qrS, qrS);
   }
 

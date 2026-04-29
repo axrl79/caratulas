@@ -36,6 +36,22 @@ export default function Caratulas() {
   const [documentSHA256, setDocumentSHA256] = useState<string>("");
   const [documentMetadata, setDocumentMetadata] = useState<DocumentMetadata | null>(null);
   const [activeGuideKey, setActiveGuideKey] = useState<string | null>(null);
+  const [showMobileGuide, setShowMobileGuide] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [hasNewInfo, setHasNewInfo] = useState(false);
+
+  useEffect(() => {
+    if (isMobile && activeGuideKey && !showMobileGuide) {
+      setHasNewInfo(true);
+    }
+  }, [activeGuideKey, isMobile, showMobileGuide]);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const handleInteresadosChange = (list: string[]) => {
     setFormData(prev => ({ ...prev, interesados: list }));
@@ -162,29 +178,119 @@ export default function Caratulas() {
         appFontSize={appFontSize} setAppFontSize={setAppFontSize} 
     />
 
-    <div style={{ minHeight:"100vh", color: C.textMain, transition: "all 0.3s ease" }}>
+    <div style={{ minHeight:"100vh", color: C.textMain, transition: "all 0.3s ease", display: "flex", flexDirection: "column" }}>
       
       <Cabecera themeMode={themeMode} C={C} onOpenSettings={() => setShowSettings(true)} />
 
-      <div style={{ display: "flex", width: "100%", maxWidth: 1600, margin: "0 auto" }}>
+      <div className="main-content-wrapper" style={{ 
+        display: "flex", 
+        flexDirection: isMobile ? "column" : "row",
+        width: "100%", 
+        maxWidth: 1600, 
+        margin: "0 auto",
+        flex: 1
+      }}>
         
         {/* LADO IZQUIERDO: 70% (Formulario) */}
-        <div style={{ flex: "0 0 70%", padding: "40px" }}>
+        <div style={{ 
+          flex: isMobile ? "1 1 auto" : "0 0 70%", 
+          padding: isMobile ? "20px" : "40px",
+          width: "100%"
+        }}>
 
           {/* TABS DE PROGRESO */}
-          <div style={{ display: "flex", marginBottom: 40, borderRadius: 14, overflow: "hidden", border: `1px solid ${C.border}`, background: C.cardBg, boxShadow: C.glow }}>
+          <div style={{ 
+            display: "flex", 
+            marginBottom: isMobile ? 24 : 40, 
+            borderRadius: 14, 
+            overflow: "hidden", 
+            border: `1px solid ${C.border}`, 
+            background: C.cardBg, 
+            boxShadow: C.glow,
+            flexWrap: isMobile ? "wrap" : "nowrap"
+          }}>
             {stepLabels.map((label, i) => {
               const n = i+1, isActive = step===n, isDone = step>n;
               return (
-                <div key={n} style={{ flex: 1, padding: "18px 8px", textAlign: "center", fontSize: "0.85em", textTransform: "uppercase", letterSpacing: 1, background: isActive ? C.accent : isDone ? C.accentLight : "transparent", color: isActive ? (themeMode === "light" ? "#fff" : C.deepGreen) : isDone ? C.accent : C.textMuted, fontWeight: isActive ? 800 : 600, borderRight: i<3 ? `1px solid ${C.border}` : "none", transition: "all 0.3s" }}>
-                  <div style={{ fontSize: "1.8em", fontWeight: 900, marginBottom: 4 }}>{n}</div>{label}
+                <div key={n} style={{ 
+                  flex: isMobile ? "1 0 50%" : 1, 
+                  padding: isMobile ? "12px 6px" : "18px 8px", 
+                  textAlign: "center", 
+                  fontSize: isMobile ? "0.75em" : "0.85em", 
+                  textTransform: "uppercase", 
+                  letterSpacing: 1, 
+                  background: isActive ? C.accent : isDone ? C.accentLight : "transparent", 
+                  color: isActive ? (themeMode === "light" ? "#fff" : C.deepGreen) : isDone ? C.accent : C.textMuted, 
+                  fontWeight: isActive ? 800 : 600, 
+                  borderRight: (!isMobile && i<3) ? `1px solid ${C.border}` : "none",
+                  borderBottom: (isMobile && i < 2) ? `1px solid ${C.border}` : "none",
+                  transition: "all 0.3s" 
+                }}>
+                  <div style={{ fontSize: isMobile ? "1.4em" : "1.8em", fontWeight: 900, marginBottom: 2 }}>{n}</div>{label}
                 </div>
               );
             })}
           </div>
 
+          {/* BOTÓN MÓVIL PARA VER GUÍA (FAB) */}
+          {isMobile && (
+            <>
+            <button 
+              onClick={() => { setShowMobileGuide(true); setHasNewInfo(false); }}
+              style={{
+                position: "fixed",
+                bottom: 24,
+                right: 24,
+                width: 64,
+                height: 64,
+                borderRadius: "50%",
+                background: C.accent,
+                border: "none",
+                color: themeMode === "light" ? "#fff" : C.deepGreen,
+                fontSize: 28,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: `0 8px 32px ${C.accent}60`,
+                zIndex: 1000,
+                cursor: "pointer",
+                transition: "all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+                animation: hasNewInfo ? "pulse-accent 2s infinite" : "none"
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.1) rotate(5deg)"}
+              onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1) rotate(0deg)"}
+            >
+              <span style={{ transform: "translateY(-1px)" }}>💡</span>
+              {hasNewInfo && (
+                <div style={{
+                  position: "absolute",
+                  top: 0,
+                  right: 0,
+                  width: 20,
+                  height: 20,
+                  background: "#ef4444",
+                  borderRadius: "50%",
+                  border: "3px solid #fff",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.2)"
+                }} />
+              )}
+            </button>
+            <div style={{ 
+              position: "fixed", bottom: 94, right: 28, 
+              background: "rgba(0,0,0,0.8)", color: "#fff", 
+              padding: "8px 16px", borderRadius: 12, fontSize: 12, fontWeight: 700,
+              opacity: hasNewInfo ? 1 : 0, transform: hasNewInfo ? "translateY(0)" : "translateY(10px)",
+              transition: "all 0.3s", pointerEvents: "none", zIndex: 1000,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.3)"
+            }}>
+              ¡Tengo información para ti!
+            </div>
+            </>
+          )}
+
           {/* RENDERIZADO DINÁMICO DE PASOS */}
           
+          <div style={{ animation: "fadeIn 0.4s ease" }}>
           {step === 1 && (
             <Paso1Categoria 
               C={C} themeMode={themeMode}
@@ -234,22 +340,88 @@ export default function Caratulas() {
             />
           )}
 
+          </div>
+
         </div>
 
-        {/* LADO DERECHO: 30% (Guía) */}
-        <div style={{ flex: "0 0 30%", position: "sticky", top: 76, height: "calc(100vh - 76px)" }}>
-          <FieldGuide 
-            activeGuideKey={activeGuideKey} 
-            onFillFields={(fields) => setFormData(prev => ({ ...prev, ...fields }))}
-            theme={C}
-            isDark={themeMode !== "light"}
-            cat={cat}
-            filesMemoria={filesMemoria}     setFilesMemoria={setFilesMemoria}
-            filesPlanos={filesPlanos}       setFilesPlanos={setFilesPlanos}
-            filesPlanosArq={filesPlanosArq} setFilesPlanosArq={setFilesPlanosArq}
-          />
-        </div>
+        {/* LADO DERECHO: 30% (Guía / Asistente Virtual) */}
+        {isMobile ? (
+          /* Drawer para Móvil */
+          <div style={{ 
+            position: "fixed", 
+            bottom: 0, 
+            left: 0, 
+            right: 0, 
+            top: 0,
+            background: "rgba(0,0,0,0.4)",
+            backdropFilter: "blur(4px)",
+            zIndex: 9999,
+            visibility: showMobileGuide ? "visible" : "hidden",
+            opacity: showMobileGuide ? 1 : 0,
+            transition: "all 0.3s ease",
+            display: "flex",
+            alignItems: "flex-end"
+          }} onClick={() => setShowMobileGuide(false)}>
+            <div style={{ 
+              width: "100%", 
+              height: "85vh", 
+              background: C.bgGrad, 
+              borderTopLeftRadius: 24, 
+              borderTopRightRadius: 24,
+              overflow: "hidden",
+              transform: showMobileGuide ? "translateY(0)" : "translateY(100%)",
+              transition: "transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1)",
+              boxShadow: "0 -8px 32px rgba(0,0,0,0.3)"
+            }} onClick={e => e.stopPropagation()}>
+              <div style={{ width: 40, height: 4, background: C.border, borderRadius: 2, margin: "12px auto", opacity: 0.5 }} />
+              <FieldGuide 
+                activeGuideKey={activeGuideKey} 
+                onFillFields={(fields) => setFormData(prev => ({ ...prev, ...fields }))}
+                theme={C}
+                isDark={themeMode !== "light"}
+                cat={cat}
+                filesMemoria={filesMemoria}     setFilesMemoria={setFilesMemoria}
+                filesPlanos={filesPlanos}       setFilesPlanos={setFilesPlanos}
+                filesPlanosArq={filesPlanosArq} setFilesPlanosArq={setFilesPlanosArq}
+                onClose={() => setShowMobileGuide(false)}
+              />
+            </div>
+          </div>
+        ) : (
+          /* Sidebar para Desktop */
+          <div style={{ 
+            flex: "0 0 30%", 
+            position: "sticky", 
+            top: 76, 
+            height: "calc(100vh - 76px)",
+            borderLeft: `1px solid ${C.border}`,
+            zIndex: 10
+          }}>
+            <FieldGuide 
+              activeGuideKey={activeGuideKey} 
+              onFillFields={(fields) => setFormData(prev => ({ ...prev, ...fields }))}
+              theme={C}
+              isDark={themeMode !== "light"}
+              cat={cat}
+              filesMemoria={filesMemoria}     setFilesMemoria={setFilesMemoria}
+              filesPlanos={filesPlanos}       setFilesPlanos={setFilesPlanos}
+              filesPlanosArq={filesPlanosArq} setFilesPlanosArq={setFilesPlanosArq}
+            />
+          </div>
+        )}
       </div>
+
+      <style jsx>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulse-accent {
+          0% { box-shadow: 0 0 0 0 ${C.accent}80; }
+          70% { box-shadow: 0 0 0 20px ${C.accent}00; }
+          100% { box-shadow: 0 0 0 0 ${C.accent}00; }
+        }
+      `}</style>
     </div>
     </>
   );

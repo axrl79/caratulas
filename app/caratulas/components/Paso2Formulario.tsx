@@ -82,7 +82,7 @@ export default function Paso2Formulario({
   // ── Estilos ──
   const card: React.CSSProperties = {
     background: C.cardBg, border: `1px solid ${C.border}`, borderRadius: 20,
-    padding: 40, boxShadow: C.glow, backdropFilter: "blur(12px)", transition: "all 0.3s ease",
+    padding: "clamp(20px, 5vw, 40px)", boxShadow: C.glow, backdropFilter: "blur(12px)", transition: "all 0.3s ease",
   };
   const secLabel: React.CSSProperties = {
     fontSize: "0.85em", textTransform: "uppercase", letterSpacing: 2, color: C.accent,
@@ -218,7 +218,7 @@ export default function Paso2Formulario({
             Datos del Proyecto
             <span style={{ flex: 1, height: 1, background: C.border }} />
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 40 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24, marginBottom: 40 }}>
             {peritajeActiveFields.map(f => renderInput(f.key))}
             {projectFields.map(f => renderInput(f.key))}
           </div>
@@ -294,7 +294,7 @@ export default function Paso2Formulario({
             Responsables
             <span style={{ flex: 1, height: 1, background: C.border }} />
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 40 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24, marginBottom: 40 }}>
             {responsibleFields
               .filter(f => f.key !== "interesado")
               .map(f => renderInput(f.key))}
@@ -354,7 +354,7 @@ export default function Paso2Formulario({
           </div>
 
           {tienePlanos && (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 16, animation: "fadeIn 0.2s ease" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24, marginBottom: 16, animation: "fadeIn 0.2s ease" }}>
               <div>
                 <label style={labelStyle}>
                   Número de Planos
@@ -387,7 +387,7 @@ export default function Paso2Formulario({
             Copias
             <span style={{ flex: 1, height: 1, background: C.border }} />
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 40 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24, marginBottom: 40 }}>
             <div>
               <label style={labelStyle}>
                 Número de Copias
@@ -409,10 +409,10 @@ export default function Paso2Formulario({
       )}
 
       {/* ── Botones ── */}
-      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 48 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 16, marginTop: 48, flexWrap: "wrap" }}>
         <button
           onClick={goBack}
-          style={btnSecondary}
+          style={{ ...btnSecondary, flex: "1 1 auto" }}
           onMouseOver={e => e.currentTarget.style.background = C.btnSecHover}
           onMouseOut={e => e.currentTarget.style.background = C.btnSecBg}
         >
@@ -420,11 +420,11 @@ export default function Paso2Formulario({
         </button>
         <button
           onClick={goToStep3}
-          style={btnPrimary}
+          style={{ ...btnPrimary, flex: "1 1 auto" }}
           onMouseOver={e => e.currentTarget.style.transform = "translateY(-2px)"}
           onMouseOut={e => e.currentTarget.style.transform = "translateY(0)"}
         >
-          Generar Vista Previa →
+          Siguiente →
         </button>
       </div>
 

@@ -14,7 +14,10 @@ export default function Paso4Descarga({
 }: Paso4DescargaProps) {
 
   // Estilos locales
-  const card: React.CSSProperties = { background: C.cardBg, border: `1px solid ${C.border}`, borderRadius: 20, padding: 40, boxShadow: C.glow, backdropFilter: "blur(12px)", transition: "all 0.3s ease", textAlign: "center" };
+  const card: React.CSSProperties = { 
+    background: C.cardBg, border: `1px solid ${C.border}`, borderRadius: 20, 
+    padding: "clamp(20px, 5vw, 40px)", boxShadow: C.glow, backdropFilter: "blur(12px)", transition: "all 0.3s ease", textAlign: "center" 
+  };
   const btnPrimary: React.CSSProperties = { background: C.accent, color: themeMode === "light" ? "#fff" : C.deepGreen, border: "none", borderRadius: 10, padding: "20px 64px", fontWeight: 700, fontSize: "1.1em", cursor: "pointer", transition: "all 0.2s", boxShadow: `0 8px 25px ${C.border}` };
   const btnSecondary: React.CSSProperties = { background: C.btnSecBg, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 32px", color: C.textMain, fontSize: "1em", cursor: "pointer", transition: "all 0.2s", fontWeight: 600 };
   const btnFormatContainer: React.CSSProperties = { display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap", marginBottom: 40 };
@@ -34,7 +37,7 @@ const logoData = mainCatKey ? CATEGORY_LOGOS[mainCatKey] : null;
       style={{ height: 44, width: "auto", objectFit: "contain", flexShrink: 0, opacity: 0.9 }}
     />
   )}
-  <div style={{ fontSize: "2.5em", color: C.textMain, fontWeight: 900 }}>¡Documento <span style={{ color: C.accent }}>Listo</span>!</div>
+  <div style={{ fontSize: "clamp(1.5em, 6vw, 2.5em)", color: C.textMain, fontWeight: 900 }}>¡Documento <span style={{ color: C.accent }}>Listo</span>!</div>
 </div>
       <div style={{ fontSize: "1.1em", color: C.textMuted, marginBottom: 40 }}>El PDF oficial ha sido procesado y codificado correctamente.</div>
       

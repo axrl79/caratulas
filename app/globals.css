@@ -1,0 +1,47 @@
+/* globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --mobile-padding: 16px;
+  --desktop-padding: 40px;
+}
+
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+/* Helper classes for responsive layout */
+.responsive-container {
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 var(--mobile-padding);
+}
+
+@media (min-width: 1024px) {
+  .responsive-container {
+    padding: 0 var(--desktop-padding);
+  }
+}
+
+.mobile-stack {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 1024px) {
+  .mobile-stack {
+    flex-direction: row;
+  }
+}
+
+/* Scrollbar styling for mobile */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+}
