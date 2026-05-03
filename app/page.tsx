@@ -1,4 +1,4 @@
-import CaratulasPage from './caratulas/page';
+import CaratulasPage from './caratulas/Caratulas';
 
 export default function Page() {
   return <CaratulasPage />;

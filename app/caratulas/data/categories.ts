@@ -25,7 +25,7 @@ export const CATEGORIAS: Categoria[] = [
     titulo_caratula: "PROYECTO ESTRUCTURAL", subtitulo_caratula: "– Edificación",
     hasPlanos: true,
     active: ["coordenadas","municipio","zona","calle","niveles",
-             "superfConstruir","superfConstruida","areaMuroCon","norma",
+             "superfConstruir","areaMuroCon","norma",
              "interesado","ingNombre","rni","tienePlanos","numPlanos","numCopias"],
   },
   {

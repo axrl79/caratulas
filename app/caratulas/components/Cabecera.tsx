@@ -179,7 +179,7 @@ const Cabecera = memo(function Cabecera({
           display: flex;
           flex-direction: column;
           justify-content: center;
-          gap: 2px;
+          gap: 0px;
         }
         .cabecera__main-title {
           font-weight: 800;
@@ -213,6 +213,7 @@ const Cabecera = memo(function Cabecera({
           text-transform: uppercase;
           opacity: 0.9;
           transition: opacity 0.2s ease;
+          margin-top: -4px;
         }
         
         /* Settings Button */
