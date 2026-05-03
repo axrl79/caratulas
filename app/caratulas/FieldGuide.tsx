@@ -88,41 +88,138 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
   };
   if (FORMATO_GUIDES[key]) return FORMATO_GUIDES[key];
 
-  if (key === "titulo") {
-    const subtitulo = cat?.subtitulo_caratula || "";
-    if (subtitulo.includes("Muro de Contención")) return { title: "Título del Proyecto (Muro de Contención)", description: "Debe escribirse el título entre comillas especificando que es un muro de contención.", example: '"Muro de Contención de Edificio Nueva Luz"' };
-    if (subtitulo.includes("Puente")) return { title: "Título del Proyecto (Puente)", description: "Debe escribirse el título del puente entre comillas.", example: '"Puente de Estrecho de Tiquina"' };
-    if (subtitulo.includes("Refuerzo Estructural")) return { title: "Título del Proyecto (Refuerzo Estructural)", description: "Debe escribirse el título entre comillas especificando que se trata de un refuerzo.", example: '"Refuerzo Estructural de Edificio Nueva Luz"' };
-    if (subtitulo.includes("Otras Estructuras")) return { title: "Título del Proyecto (Otras Estructuras)", description: "Debe escribirse el título descriptivo de la estructura especial entre comillas.", example: '"Tanque Elevado de Hormigón Armado Urbanización Nueva Luz"' };
+if (key === "titulo") {
+  const subtitulo = cat?.subtitulo_caratula || "";
+  const code = cat?.code || "";
+
+  // ── MURO DE CONTENCIÓN ──
+  if (subtitulo.includes("Muro de Contención") || subtitulo.includes("Muro de contención")) {
     return {
-      title: "Título del Proyecto (Edificación)",
-      description: "Debe incluir el título entre comillas y especificar el tipo de estructura del cuadro normativo entre paréntesis.",
-      example: '"Edificio Nueva Luz" (tipo C-2)',
-      table: {
-        headers: ["TIPO", "TIPOLOGÍA", "ALTURA"],
-        rows: [
-          ["C-1", "De interés social (Vivienda básica)", "Hasta 3.5 m — Una planta"],
-          ["", "Simple (Vivienda privada)", "Hasta 4.5 m — Una planta y media"],
-          ["C-2", "Mediana (Vivienda uso mixto)", "Hasta 6.5 m — Planta baja y planta alta"],
-          ["C-3", "Medianamente compleja (Multifamiliar)", "Hasta 12.5 m — Dos a cuatro plantas"],
-          ["C-4a", "Compleja (Multifamiliar, oficinas, comercio)", "Hasta 40 m — Cinco a diez plantas"],
-          ["C-4b", "", "Hasta 60 m — Once a veinte plantas"],
-          ["C-4c", "", "Mayores a 60 m o veinte plantas"],
-          ["C-5", "Edificaciones especiales", "Cualquier altura"],
-        ],
-      },
-      notes: ["Fuente: Norma Boliviana de Estudios Geotécnicos."],
+      title: "Título del Proyecto (Muro de Contención)",
+      description: 'Debe escribirse el título entre comillas especificando que es un muro de contención.',
+      example: '"Muro de Contención de Edificio Nueva Luz"',
     };
   }
+
+  // ── PUENTE ──
+  if (subtitulo.includes("Puente")) {
+    return {
+      title: "Título del Proyecto (Puente)",
+      description: 'Debe escribirse el título del puente entre comillas.',
+      example: '"Puente de Estrecho de Tiquina"',
+    };
+  }
+
+  // ── REFUERZO ESTRUCTURAL ──
+  if (subtitulo.includes("Refuerzo Estructural")) {
+    return {
+      title: "Título del Proyecto (Refuerzo Estructural)",
+      description: 'Debe escribirse el título entre comillas especificando que se trata de un refuerzo.',
+      example: '"Refuerzo Estructural de Edificio Nueva Luz"',
+    };
+  }
+
+  // ── URBANIZACIÓN ──
+  if (subtitulo.includes("Urbanización") || subtitulo.includes("Urbanizacion")) {
+    return {
+      title: "Título del Proyecto (Urbanización)",
+      description: 'Debe escribirse el nombre de la urbanización entre comillas.',
+      example: '"Urbanización La Nueva Esperanza"',
+    };
+  }
+
+  // ── ACTIVIDAD ECONÓMICA ──
+  if (["PRE5", "PEL5"].includes(code)) {
+    return {
+      title: "Título del Proyecto (Actividad Económica)",
+      description: 'Debe escribirse el nombre del establecimiento o actividad entre comillas.',
+      example: '"Discoteca la Gran Noche"',
+    };
+  }
+
+  // ── RED INDUSTRIAL ──
+  if (["PRE3", "PRE4", "PEL3", "PEL4"].includes(code)) {
+    return {
+      title: "Título del Proyecto (Industrial / Alta Potencia)",
+      description: 'Debe escribirse el nombre del proyecto industrial o de alta potencia entre comillas.',
+      example: '"Plataforma Industrial el Nuevo Amanecer"',
+      notes: ['También válido: "Hospital de Última Generación Centro"'],
+    };
+  }
+
+  // ── MAQUINARIA / MECÁNICO ──
+  if (["PMC1"].includes(code)) {
+    return {
+      title: "Título del Proyecto (Maquinaria / Mecánico)",
+      description: 'Debe escribirse el nombre del equipo o sistema mecánico entre comillas.',
+      example: '"Diseño de Máquina Empacadora"',
+    };
+  }
+
+  // ── INFORME TÉCNICO / PERICIAL ──
+  if (["INT1", "INP1"].includes(code)) {
+    return {
+      title: "Título del Proyecto (Informe)",
+      description: 'Debe escribirse el tipo y objeto del informe entre comillas.',
+      example: '"Informe Técnico Pericial de Estructura de Edificio Nueva Luz"',
+    };
+  }
+
+  // ── PLAN DE CONTINGENCIA ──
+  if (["PLC1", "PLC2"].includes(code)) {
+    return {
+      title: "Título del Proyecto (Plan de Contingencia)",
+      description: 'Debe escribirse el nombre del objeto o edificación del plan entre comillas.',
+      example: '"Plan de Contingencia – Edificio Nueva Luz"',
+    };
+  }
+
+  // ── GEOTÉCNICO ──
+  if (["EGG1", "EGG2", "EGG3"].includes(code)) {
+    return {
+      title: "Título del Proyecto (Estudio Geotécnico)",
+      description: 'Debe escribirse el nombre del predio o proyecto objeto del estudio entre comillas.',
+      example: '"Estudio Geotécnico Geológico – Edificio Nueva Luz"',
+    };
+  }
+
+  // ── SANITARIO ──
+  if (["PSA1", "PSA2", "PSA3"].includes(code)) {
+    return {
+      title: "Título del Proyecto (Sanitario)",
+      description: 'Debe escribirse el nombre del proyecto o edificación entre comillas.',
+      example: '"Proyecto Hidro Sanitario – Edificio Nueva Luz"',
+    };
+  }
+
+  // ── EDIFICACIÓN (default — incluye PES1, CEE1, CEE2, PRE1, PRE2, PEL1, PEL2) ──
+  return {
+    title: "Título del Proyecto (Edificación)",
+    description: 'Debe incluir el título entre comillas y especificar el tipo de estructura del cuadro normativo entre paréntesis.',
+    example: '"Edificio Nueva Luz" (tipo C-2)',
+    table: {
+      headers: ["TIPO", "TIPOLOGÍA", "ALTURA"],
+      rows: [
+        ["C-1", "De interés social (Vivienda básica)", "Hasta 3.5 m — Una planta"],
+        ["",    "Simple (Vivienda privada)",            "Hasta 4.5 m — Una planta y media"],
+        ["C-2", "Mediana (Vivienda uso mixto)",         "Hasta 6.5 m — Planta baja y planta alta"],
+        ["C-3", "Medianamente compleja (Multifamiliar)", "Hasta 12.5 m — Dos a cuatro plantas"],
+        ["C-4a","Compleja (Multifamiliar, oficinas, comercio)", "Hasta 40 m — Cinco a diez plantas"],
+        ["C-4b","",                                     "Hasta 60 m — Once a veinte plantas"],
+        ["C-4c","",                                     "Mayores a 60 m o veinte plantas"],
+        ["C-5", "Edificaciones especiales",             "Cualquier altura"],
+      ],
+    },
+    notes: ["Fuente: Norma Boliviana de Estudios Geotécnicos."],
+  };
+}
 
   const FIELD_GUIDES: Record<string, GuideContent> = {
     "memorias": { title: "Memorias de Cálculo", description: "Documentos técnicos que respaldan los cálculos del proyecto. Deben incluir hipótesis de carga, resultados numéricos y conclusiones firmadas.", example: "Memoria_Calculo_Estructural.pdf", notes: ["Formato recomendado: PDF.", "Tamaño máximo: 50 MB.", "Puedes subir múltiples archivos."] },
     "planos": { title: "Planos de Ingeniería", description: "Planos técnicos del proyecto (estructurales, sanitarios, eléctricos u otros). Deben estar firmados y sellados por el proyectista.", example: "Plano_Estructural_PB.pdf / .dwg", notes: ["Formatos aceptados: PDF, DWG, DXF.", "Cada plano debe tener cuadro de rotulación completo."] },
     "planosArq": { title: "Planos Arquitectónicos", description: "Planos de arquitectura: distribución, cortes, fachadas y detalles constructivos. Necesarios para verificar concordancia con la especialidad.", example: "Plano_Arquitectonico_PB.pdf", notes: ["Formatos aceptados: PDF, DWG.", "Incluir planta de conjunto si aplica."] },
     "niveles": { title: "Número de Niveles", description: "La planta baja cuenta como nivel. Especificar sótanos y terrazas entre paréntesis.", example: "6 niveles (1 Terraza, 3 plantas y 2 sótanos)" },
-    "coordenadas": { title: "Coordenadas (Lat. – Long.)", description: "Carga el mapa interactivo para seleccionar la ubicación exacta del predio.", example: "-16.503487; -68.130420" },
-    "municipio": { title: "Municipio", description: "Carga el mapa para detectar automáticamente el municipio o escríbelo.", example: "La Paz, El Alto, Viacha, Copacabana" },
-    "zona": { title: "Zona", description: "Zona o barrio del predio.", notes: ['Si no es posible especificar, colocar "No Corresponde".'] },
+    "coordenadas": { title: "Coordenadas (Lat. – Long.)", description: "Se registrarán las coordenadas geodésicas en el sistema de referencia mundial WGS-84. Para proyectos con predio definido, se tomará como punto de referencia el centroide (centro geométrico) del mismo. Las coordenadas se expresarán en grados decimales con una precisión mínima de seis (6) decimales, utilizando el punto (.) como separador decimal. El formato de entrada será: Latitud, seguido de Longitud, separados estrictamente por punto y coma (;).", example: "-16.503487; -68.130420" },
     "calle": { title: "Calle", description: "Avenida, calle o pasaje y número del predio.", example: "Av. Arce N° 2631" },
     "interesado": { title: "Nombre del Interesado", description: "Nombre completo del propietario, representante legal o entidad solicitante." },
     "ingNombre": { title: "Nombre Ing. Proyectista", description: "Nombre completo del ingeniero que elabora y firma el proyecto." },
@@ -148,16 +245,49 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
     "volDemolicion": { title: "Volumen de Demolición (m³)", description: "Volumen total de material a demoler en la estructura existente.", example: "75.00" },
     "numArtefactos": { title: "Número de Artefactos", description: "Cantidad total de artefactos sanitarios (inodoros, lavamanos, duchas, etc.) del proyecto.", example: "24" },
     "longSistema": { title: "Longitud Total del Sistema (km)", description: "Longitud total de la red de tuberías o sistema sanitario proyectado.", example: "2.350" },
-    "distritoJudicial": { title: "Distrito Judicial", description: "Distrito judicial al que pertenece el juzgado que solicitó el informe pericial.", example: "La Paz" },
+    "distritoJudicial": { title: "Distrito Judicial", description: "En Distrito Judicial colocar la unidad de división territorial del caso asignado.", example: "La Paz" },
     "nurej": { title: "NUREJ", description: "Número Único de Registro de Expediente Judicial asignado al caso.", example: "2024-0001234-5" },
     "nombreJuzgado": { title: "Nombre del Juzgado", description: "Denominación completa del juzgado o tribunal que solicita el peritaje.", example: "Juzgado 1° Civil de La Paz" },
     "pesoTotal": { title: "Peso Total ±5% (kg)", description: "Peso total del equipo o sistema mecánico con tolerancia del ±5%.", example: "1250.00" },
     "dimensiones": { title: "Dimensiones L×A×H (m)", description: "Dimensiones principales del equipo: largo, ancho y alto en metros.", example: "2.5 × 1.8 × 3.2" },
     "fuenteEnergia": { title: "Fuente de Energía Principal", description: "Tipo de energía que alimenta el sistema mecánico.", example: "Eléctrica trifásica 380V" },
     "funcionPrincipal": { title: "Función Principal", description: "Descripción breve de la función o propósito principal del equipo o sistema.", example: "Ascensor de pasajeros para 8 personas" },
-    "ubicacionInst": { title: "Ubicación de Instalación", description: "Dirección o descripción detallada del lugar donde se instalará o se encuentra el equipo.", example: "Av. Arce N°2631, Edificio Torres del Sol, Piso 3" },
+    "ubicacionInst": { title: "Ubicación de Instalación", description: "Se debe colocar dirección o referencia del lugar en que se instalara el equipo o máquina.", example: "Av. Arce N°2631, Edificio Torres del Sol, Piso 3" },
     "superfProspeccion": { title: "Superficie de Prospección (ha)", description: "Área total del terreno prospectado en el estudio geológico, expresada en hectáreas.", example: "1.250" },
     "areaMuroEst": { title: "Área de Estribos a Construir (m²)", description: "Área total de estribos o pilas del puente a construir.", example: "45.00" },
+    "municipio": {
+  title: "Municipio",
+  description: "Se deberá colocar el nombre oficial del Municipio donde se emplaza el proyecto, asegurando la correspondencia con la Provincia respectiva de acuerdo a la División Político-Administrativa del Estado Vigente.",
+  example: "La Paz, El Alto, Viacha, Copacabana",
+  notes: [
+    "En caso de proyectos colindantes entre dos o más municipios, se deberá especificar el municipio donde se registre el proyecto."
+  ],
+  table: {
+    headers: ["PROVINCIA", "MUNICIPIOS"],
+    rows: [
+      ["Murillo",                "La Paz, El Alto, Palca, Mecapaca, Achocalla"],
+      ["Omasuyos",               "Achacachi, Ancoraimes, Chua Cocani, Huarina, Santiago de Huata"],
+      ["Ingavi",                 "Viacha, Guaqui, Desaguadero, San Andrés de Machaca, Jesús de Machaca, Taraco, Tiwanaku"],
+      ["Los Andes",              "Pucarani, Laja, Batallas, Puerto Pérez"],
+      ["Aroma",                  "Sica Sica, Umala, Ayo Ayo, Calamarca, Patacamaya, Colquencha, Collana"],
+      ["Pacajes",                "Corocoro, Caquiaviri, Calacoto, Comanche, Charaña, Waldo Ballivián, Nazacara de Pacajes, Santiago de Callapa"],
+      ["Manco Kapac",            "Copacabana, San Pedro de Tiquina, Tito Yupanqui"],
+      ["Larecaja",               "Sorata, Guanay, Tipuani, Mapiri, Teoponte, Combaya, Quiabaya, Tacacoma"],
+      ["Bautista Saavedra",      "Charazani, Curva"],
+      ["Muñecas",                "Chuma, Ayata, Aucapata"],
+      ["Camacho",                "Puerto Acosta, Mocomoco, Puerto Carabuco, Humanata, Escoma"],
+      ["Franz Tamayo",           "Apolo, Pelechuco"],
+      ["Loayza",                 "Luribay, Sapahaqui, Yaco, Malla, Cairoma"],
+      ["Inquisivi",              "Inquisivi, Quime, Cajuata, Colquiri, Ichoca, Licoma Pampa"],
+      ["Sud Yungas",             "Chulumani, Irupana, Yanacachi, Palos Blancos, La Asunta"],
+      ["Nor Yungas",             "Coroico, Coripata"],
+      ["Iturralde",              "Ixiamas, San Buenaventura"],
+      ["Caranavi",               "Caranavi, Alto Beni"],
+      ["Gualberto Villarroel",   "Curahuara de Carangas, San Pedro de Curahuara, Papel Pampa"],
+      ["José Manuel Pando",      "Santiago de Machaca, Catacora"],
+    ],
+  },
+},
   };
 
   return FIELD_GUIDES[key] || null;
@@ -470,7 +600,7 @@ const mainCatKey: string | null = isUploadKey ? null : (() => {
                     {!showMap ? (
                       <div style={{ background: theme.cardBg, border: `1px dashed ${theme.border}`, borderRadius: 14, padding: "30px 20px", textAlign: "center" }}>
                         <div style={{ fontSize: 32, marginBottom: 12 }}>📍</div>
-                        <p style={{ color: theme.textSec, fontSize: 13, marginBottom: 20, fontWeight: 500 }}>El mapa autocompletará Municipio, Zona y Coordenadas.</p>
+                        <p style={{ color: theme.textSec, fontSize: 13, marginBottom: 20, fontWeight: 500 }}>El mapa autocompletará Municipio, Zona, Calle y Coordenadas.</p>
                         <button onClick={() => setShowMap(true)} style={{ background: theme.accent, color: isDark ? "#0a1a12" : "#fff", border: "none", borderRadius: 8, padding: "12px 24px", fontWeight: 800, fontSize: 13, cursor: "pointer" }}>
                           🗺️ Cargar Mapa Interactivo
                         </button>
