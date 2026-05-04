@@ -42,7 +42,7 @@ export const CATEGORIAS: Categoria[] = [
     label: "Proyecto Estructural – Puente o Viaducto",
     titulo_caratula: "PROYECTO ESTRUCTURAL", subtitulo_caratula: "– Puente o Viaducto",
     hasPlanos: true,
-    active: ["coordenadas","municipio","luzPuente","superfTablero","areaMuroEst","norma",
+    active: ["coordenadas","municipio","luzPuente","superfTableroCon","areaMuroEst","norma",
              "interesado","ingNombre","rni","tienePlanos","numPlanos","numCopias"],
   },
   {
@@ -64,7 +64,7 @@ export const CATEGORIAS: Categoria[] = [
     titulo_caratula: "CERTIFICADO DE ESTABILIDAD ESTRUCTURAL", subtitulo_caratula: "– Edificación",
     solocopias: true,
     active: ["coordenadas","municipio","zona","calle","niveles",
-             "superfConstruida","areaMuroCon","normaVerif",
+             "superfConstruida","areaMuro","normaVerif",
              "interesado","ingNombre","rni","numCopias"],
   },
   {
@@ -73,7 +73,7 @@ export const CATEGORIAS: Categoria[] = [
     titulo_caratula: "CERTIFICADO DE ESTABILIDAD ESTRUCTURAL", subtitulo_caratula: "– Sismorresistente – Edificación",
     solocopias: true,
     active: ["coordenadas","municipio","zona","calle","niveles",
-             "superfConstruida","areaMuroCon","normaVerif",
+             "superfConstruida","areaMuro","normaVerif",
              "interesado","ingNombre","rni","numCopias"],
   },
   {
@@ -81,7 +81,7 @@ export const CATEGORIAS: Categoria[] = [
     label: "Certificado de Estabilidad Estructural – Puente o Viaducto",
     titulo_caratula: "CERTIFICADO DE ESTABILIDAD ESTRUCTURAL", subtitulo_caratula: "– Puente o Viaducto",
     solocopias: true,
-    active: ["coordenadas","municipio","luzPuente","superfTablero","areaMuroEst","normaVerif",
+    active: ["coordenadas","municipio","luzPuente","superfTablero","areaEstribos","normaVerif",
              "interesado","ingNombre","rni","numCopias"],
   },
   {
@@ -90,7 +90,7 @@ export const CATEGORIAS: Categoria[] = [
     titulo_caratula: "CERTIFICADO DE ESTABILIDAD ESTRUCTURAL", subtitulo_caratula: "– Muro de Contención",
     solocopias: true,
     active: ["coordenadas","municipio","zona","calle","altMuro",
-             "areaMuroCon","areaMuroHA","areaMuroHC","normaVerif",
+             "areaMuro","areaMuroHA","areaMuroHC","normaVerif",
              "interesado","ingNombre","rni","numCopias"],
   },
   {
@@ -99,7 +99,7 @@ export const CATEGORIAS: Categoria[] = [
     titulo_caratula: "CERTIFICADO DE ESTABILIDAD ESTRUCTURAL", subtitulo_caratula: "– Sismorresistente – Muro de Contención",
     solocopias: true,
     active: ["coordenadas","municipio","zona","calle","altMuro",
-             "areaMuroCon","areaMuroHA","areaMuroHC","normaVerif",
+             "areaMuro","areaMuroHA","areaMuroHC","normaVerif",
              "interesado","ingNombre","rni","numCopias"],
   },
 
@@ -143,7 +143,7 @@ export const CATEGORIAS: Categoria[] = [
     label: "Estudio Geotécnico y Geológico – Edificación Proyectada",
     titulo_caratula: "ESTUDIO GEOTÉCNICO GEOLÓGICO", subtitulo_caratula: "– Edificación Proyectada",
     solocopias: true,
-    active: ["coordenadas","municipio","zona","calle","niveles","volMovTierras","superfTerreno","normaVerif",
+    active: ["coordenadas","municipio","zona","calle","niveles","volMovTierras","superfTerreno","normaAplicacion",
              "interesado","ingNombre","rni","numCopias"],
   },
   {
@@ -151,7 +151,7 @@ export const CATEGORIAS: Categoria[] = [
     label: "Estudio Geotécnico y Geológico – Edificación Existente",
     titulo_caratula: "ESTUDIO GEOTÉCNICO GEOLÓGICO", subtitulo_caratula: "– Edificación Existente",
     solocopias: true,
-    active: ["coordenadas","municipio","zona","calle","niveles","superfTerreno","normaVerif",
+    active: ["coordenadas","municipio","zona","calle","niveles","superfTerreno","normaAplicacion",
              "interesado","ingNombre","rni","numCopias"],
   },
   {
@@ -159,7 +159,7 @@ export const CATEGORIAS: Categoria[] = [
     label: "Estudio Geotécnico y Geológico – Urbanización",
     titulo_caratula: "ESTUDIO GEOTÉCNICO GEOLÓGICO", subtitulo_caratula: "– Urbanización",
     solocopias: true,
-    active: ["coordenadas","municipio","volMovTierras","superfProspeccion","normaVerif",
+    active: ["coordenadas","municipio","volMovTierras","superfProspeccion","normaAplicacion",
              "interesado","ingNombre","rni","numCopias"],
   },
 
@@ -287,7 +287,7 @@ export const CATEGORIAS: Categoria[] = [
     titulo_caratula: "PLAN DE CONTINGENCIA", subtitulo_caratula: "– Edificación",
     solocopias: true,
     active: ["coordenadas","municipio","zona","calle","niveles",
-             "volMovTierras","volDemolicion","superfConstruir","normaVerif",
+             "volMovTierras","volDemolicion","superfConstruir","normaAplicacion",
              "interesado","ingNombre","rni","numCopias"],
   },
   {
@@ -296,7 +296,7 @@ export const CATEGORIAS: Categoria[] = [
     titulo_caratula: "PLAN DE CONTINGENCIA", subtitulo_caratula: "– Muro de Contención",
     solocopias: true,
     active: ["coordenadas","municipio","zona","calle","altMuro",
-             "volMovTierras","volDemolicion","normaVerif",
+             "volMovTierras","volDemolicion","normaAplicacion",
              "interesado","ingNombre","rni","numCopias"],
   },
 
@@ -309,7 +309,7 @@ export const CATEGORIAS: Categoria[] = [
     label: "Informe Técnico",
     titulo_caratula: "INFORME TÉCNICO", subtitulo_caratula: "– General",
     solocopias: true,
-    active: ["coordenadas","municipio","normaVerif",
+    active: ["coordenadas","municipio","normaAplicacion",
              "interesado","ingNombre","rni","numCopias"],
   },
   {
@@ -318,7 +318,7 @@ export const CATEGORIAS: Categoria[] = [
     titulo_caratula: "INFORME PERICIAL", subtitulo_caratula: "– General",
     solocopias: true,
     // Campos completamente distintos: no usa localización estándar
-    active: ["distritoJudicial","nurej","normaVerif","nombreJuzgado",
+    active: ["distritoJudicial","nurej","normaAplicacion","nombreJuzgado",
              "ingNombre","rni","numCopias"],
   },
 ];

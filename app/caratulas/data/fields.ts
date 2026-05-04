@@ -22,6 +22,7 @@ export const FIELDS: Field[] = [
   { key: "superfConstruir",   label: "Superficie a Construir (m²)",                      type: "number" },
   { key: "superfConstruida",  label: "Superficie Construida (m²)",                       type: "number" },
   { key: "superfTablero",     label: "Superficie del Tablero (m²)",                      type: "number" },
+  { key: "superfTableroCon",  label: "Superficie del Tablero a Construir (m²)",          type: "number" },
   { key: "superfReforzar",    label: "Superficie a Reforzar (m²)",                       type: "number" },
   { key: "superfTerreno",     label: "Superficie del Terreno (m²)",                      type: "number" },
   { key: "superfProspeccion", label: "Superficie de Prospección (ha)",                   type: "number" },
@@ -29,9 +30,12 @@ export const FIELDS: Field[] = [
   // ── Muros y estructuras ──
   { key: "areaMuroCon",       label: "Área de Muro de Contención a Construir (m²)",      type: "number" },
   { key: "areaMuroRef",       label: "Área de Muro de Contención a Reforzar (m²)",       type: "number" },
+  { key: "areaMuro",          label: "Área de Muro de Contención (m²)",                  type: "number" },
   { key: "areaMuroHA",        label: "Área de Muro Hormigón Armado (m²)",                type: "number" },
   { key: "areaMuroHC",        label: "Área de Muro Hormigón Ciclópeo (m²)",              type: "number" },
   { key: "areaMuroEst",       label: "Área de Estribos a Construir (m²)",                type: "number" },
+  { key: "areaEstribos",      label: "Área de Estribos (m²)",                            type: "number" },
+
 
   // ── Puentes ──
   { key: "luzPuente",         label: "Luz Total de Puente (m)",                          type: "number" },
@@ -67,6 +71,9 @@ export const FIELDS: Field[] = [
   { key: "distritoJudicial",  label: "Distrito Judicial",                                type: "text" },
   { key: "nurej",             label: "NUREJ",                                            type: "text" },
   { key: "nombreJuzgado",     label: "Nombre del Juzgado",                               type: "text",   full: true },
+  { key: "areaIngenieria",    label: "Área de Ingeniería",                               type: "text" },
+  { key: "temaIngenieria",    label: "Tema de Ingeniería",                               type: "text" },
+
 
   // ── Responsables ──
   { key: "interesado",        label: "Nombre del (de los) Interesado(s)",                type: "text",   full: true },
@@ -79,6 +86,8 @@ export const FIELDS: Field[] = [
 
   // ── Copias ──
   { key: "numCopias",         label: "Número de Copias",                                 type: "number" },
+
+
 ];
 
 /** Campos que van en la sección "Responsables" */
@@ -93,10 +102,10 @@ export const peritajeFields: FieldKey[] = ["distritoJudicial", "nurej", "nombreJ
 export const QR_ORDER: FieldKey[] = [
   "titulo","coordenadas","municipio","zona","calle","ubicacionInst",
   "niveles","superfConstruir","superfConstruida","superfTablero","superfReforzar",
-  "superfTerreno","superfProspeccion","areaMuroCon","areaMuroRef","areaMuroHA",
+  "superfTerreno","superfProspeccion","areaMuroCon","areaMuroRef","areaMuro","areaMuroHA",
   "areaMuroHC","areaMuroEst","luzPuente","altMuro","volMovTierras","volDemolicion",
   "numArtefactos","longSistema","potenciaInst","potenciaDem","tensionAlim",
   "pesoTotal","dimensiones","fuenteEnergia","funcionPrincipal",
-  "norma","normaVerif","distritoJudicial","nurej","nombreJuzgado",
+  "areaIngenieria","temaIngenieria",
   "interesado","ingNombre","rni","tienePlanos","numPlanos","numCopias",
 ];

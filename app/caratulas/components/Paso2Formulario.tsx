@@ -5,7 +5,14 @@ import {
 } from "../data/diccionarios";
 import { getFieldType, allowsDecimals } from "../data/fieldTypes";
 import { normalizeDecimalToPoint } from "../data/normalizeDecimal";
-import { onlyNumbers, onlyNumbersAndDot, onlyLetters, onlyLettersAndNumbers, onlyNumbersDotAndMinus, sanitizeCoordinate } from "../data/inputSanitizers";
+import {
+  onlyNumbers,
+  onlyLetters,
+  onlyNumbersMaxDecimals,
+  sanitizeCoordinate,
+  sanitizeNurej,
+  sanitizeDimensiones,
+} from "../data/inputSanitizers";
 
 interface Paso2FormularioProps {
   C: any;
@@ -43,29 +50,27 @@ export default function Paso2Formulario({
 
   const sanitizeInput = (key: FieldKey, rawValue: string): string => {
     const fieldType = getFieldType(key);
-    const isDecimalField = categoryRules[key]?.decimals === true;
-    if (key === "coordenadas") return sanitizeCoordinate(rawValue);
-    if (isDecimalField) {
-      let cleaned = onlyNumbersAndDot(rawValue);
-      cleaned = cleaned.replace(",", ".");
-      return cleaned;
-    }
+
+    // ── Casos especiales con lógica propia ──
+    if (key === "coordenadas")  return sanitizeCoordinate(rawValue);
+    if (key === "nurej")        return sanitizeNurej(rawValue);
+    if (key === "dimensiones")  return sanitizeDimensiones(rawValue);
+
+    // ── Por tipo de dato ──
     switch (fieldType) {
-      case "numeral": return onlyNumbers(rawValue);
-      case "literal": return onlyLetters(rawValue);
+      case "decimal2":    return onlyNumbersMaxDecimals(rawValue, 2);
+      case "decimal3":    return onlyNumbersMaxDecimals(rawValue, 3);
+      case "numeral":     return onlyNumbers(rawValue);
+      case "literal":     return onlyLetters(rawValue);
       case "ambos":
-      default: return onlyLettersAndNumbers(rawValue);
+      case "coordenadas":
+      case "dimensiones":
+      default:            return rawValue; // texto libre sin restricción
     }
   };
 
   const handleBlockedChange = (key: FieldKey, rawValue: string) => {
     const sanitized = sanitizeInput(key, rawValue);
-    handleInputChange(key, sanitized);
-  };
-
-  const handleDecimalChange = (key: FieldKey, rawValue: string) => {
-    let sanitized = onlyNumbersAndDot(rawValue);
-    sanitized = normalizeDecimalToPoint(sanitized);
     handleInputChange(key, sanitized);
   };
 
@@ -145,10 +150,7 @@ export default function Paso2Formulario({
     const fieldType = getFieldType(key);
     const isNumeral = fieldType === "numeral";
     const isLiteral = fieldType === "literal";
-
-    const changeHandler = isDecimalField
-      ? (e: React.ChangeEvent<HTMLInputElement>) => handleDecimalChange(key, e.target.value)
-      : (e: React.ChangeEvent<HTMLInputElement>) => handleBlockedChange(key, e.target.value);
+    const changeHandler = (e: React.ChangeEvent<HTMLInputElement>) => handleBlockedChange(key, e.target.value);
 
     let placeholder = `Ingresa ${field.label.toLowerCase()}`;
     if (isDecimalField) placeholder += " (solo números: ej: 1.5)";
@@ -160,23 +162,29 @@ export default function Paso2Formulario({
     else if (isLiteral) typeBadge = <span style={{ color: C.accent, fontSize: "0.7em" }}>🔤 solo letras</span>;
 
     return (
-  <div key={key} style={{ display: "flex", flexDirection: "column" }}>
-    <label style={labelStyle}>
-      {labelOverride ?? field.label}
-      {typeBadge}
-    </label>
-    <input
-      type="text"
-      value={value}
-      onChange={changeHandler}
-      onFocus={() => setActiveGuideKey(key)}
-      placeholder={placeholder}
-      style={{ ...inputStyle(), marginTop: "auto" }}
-      onFocusCapture={e => { e.currentTarget.style.borderColor = C.accent; }}
-      onBlurCapture={e => { e.currentTarget.style.borderColor = C.border; }}
-    />
-  </div>
-);
+      <div key={key} style={{ display: "flex", flexDirection: "column" }}>
+        <label style={labelStyle}>
+          {labelOverride ?? field.label}
+          {typeBadge}
+        </label>
+        <input
+          type="text"
+          value={value}
+          onChange={changeHandler}
+          onFocus={() => {
+            setActiveGuideKey(key);
+            // Autocomplete especiales al hacer foco si el campo está vacío
+            if (key === "ingNombre" && !value) {
+              handleInputChange(key, "Ing. ");
+            }
+          }}
+          placeholder={placeholder}
+          style={{ ...inputStyle(), marginTop: "auto" }}
+          onFocusCapture={e => { e.currentTarget.style.borderColor = C.accent; }}
+          onBlurCapture={e => { e.currentTarget.style.borderColor = C.border; }}
+        />
+      </div>
+    );
   };
 
   return (
@@ -201,8 +209,14 @@ export default function Paso2Formulario({
         <input
           type="text"
           value={formData.titulo || ""}
-          onChange={e => handleInputChange("titulo", e.target.value)}
-          onFocus={() => setActiveGuideKey("titulo")} // ← solo onFocus
+          onChange={e => {
+            let val = e.target.value;
+            handleInputChange("titulo", val);
+          }}
+          onFocus={() => {
+            setActiveGuideKey("titulo");
+            if (!formData.titulo) handleInputChange("titulo", '"');
+          }}
           placeholder="Ingresa el título completo del proyecto"
           style={inputStyle()}
           onFocusCapture={e => { e.currentTarget.style.borderColor = C.accent; }}
@@ -225,7 +239,8 @@ export default function Paso2Formulario({
       )}
 
       {/* Interesados */}
-      {cat.active.includes("interesado") && (
+      {cat.active.includes("interesado") && cat.code !== "INP1" && (
+
         <>
           <div style={secLabel}>
             Interesado(s)
@@ -265,7 +280,88 @@ export default function Paso2Formulario({
         </>
       )}
 
+      {/* Nombre del Juzgado — solo INP1, reemplaza al interesado */}
+{cat.code === "INP1" && (
+  <>
+    <div style={secLabel}>
+      Nombre del Juzgado
+      <span style={{ flex: 1, height: 1, background: C.border }} />
+    </div>
+    <div>
+      <label style={labelStyle}>Nombre del Juzgado</label>
+      <input
+        type="text"
+        value={formData.nombreJuzgado || ""}
+        onChange={e => handleInputChange("nombreJuzgado", e.target.value)}
+        onFocus={() => setActiveGuideKey("nombreJuzgado")}
+        placeholder="Ej: Juzgado 1° Civil de La Paz"
+        style={inputStyle()}
+        onFocusCapture={e => { e.currentTarget.style.borderColor = C.accent; }}
+        onBlurCapture={e => { e.currentTarget.style.borderColor = C.border; }}
+      />
+    </div>
+    <div style={{ marginBottom: 40 }} />
+  </>
+)}
+
       {/* Responsables */}
+
+      {/* ── Campos especiales para INT1 e INP1 ── */}
+{(cat.code === "INT1" || cat.code === "INP1") && (
+  <>
+    <div style={secLabel}>
+      Especialización del Informe
+      <span style={{ flex: 1, height: 1, background: C.border }} />
+    </div>
+    <div style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+      gap: 24,
+      marginBottom: 40,
+      alignItems: "end",
+    }}>
+      {/* Campo 1: Área de Ingeniería */}
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        <label style={labelStyle}>
+          Área de Ingeniería
+          <span style={{ color: C.accent, fontSize: "0.7em" }}>
+            ej: Sistemas, Industrial, Civil
+          </span>
+        </label>
+        <input
+          type="text"
+          value={formData.areaIngenieria || ""}
+          onChange={e => handleInputChange("areaIngenieria", e.target.value)}
+          onFocus={() => setActiveGuideKey("areaIngenieria")}
+          placeholder="Ej: Sistemas, Industrial, Civil..."
+          style={{ ...inputStyle(), marginTop: "auto" }}
+          onFocusCapture={e => { e.currentTarget.style.borderColor = C.accent; }}
+          onBlurCapture={e => { e.currentTarget.style.borderColor = C.border; }}
+        />
+      </div>
+
+      {/* Campo 2: Tema de Ingeniería */}
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        <label style={labelStyle}>
+          Tema de Ingeniería
+          <span style={{ color: C.accent, fontSize: "0.7em" }}>
+            ej: Base de Datos, Maquinaria, Estructuras
+          </span>
+        </label>
+        <input
+          type="text"
+          value={formData.temaIngenieria || ""}
+          onChange={e => handleInputChange("temaIngenieria", e.target.value)}
+          onFocus={() => setActiveGuideKey("temaIngenieria")}
+          placeholder="Ej: Base de Datos, Maquinaria..."
+          style={{ ...inputStyle(), marginTop: "auto" }}
+          onFocusCapture={e => { e.currentTarget.style.borderColor = C.accent; }}
+          onBlurCapture={e => { e.currentTarget.style.borderColor = C.border; }}
+        />
+      </div>
+    </div>
+  </>
+)}
       {responsibleFields.filter(f => f.key !== "interesado").length > 0 && (
         <>
           <div style={secLabel}>

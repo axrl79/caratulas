@@ -49,7 +49,7 @@ export const CATEGORY_FIELD_RULES: Record<string, Partial<Record<FieldKey, Field
     coordenadas:   { required: true,  decimals: false },
     municipio:     { required: true,  decimals: false },
     luzPuente:     { required: true,  decimals: true  },
-    superfTablero: { required: true,  decimals: true  },
+    superfTableroCon:{ required: true,  decimals: true  },
     areaMuroEst:   { required: true,  decimals: true  },
     norma:         { required: true,  decimals: false },
     interesado:    { required: true,  decimals: false },
@@ -83,7 +83,7 @@ export const CATEGORY_FIELD_RULES: Record<string, Partial<Record<FieldKey, Field
     calle:            { required: true,  decimals: false },
     niveles:          { required: true,  decimals: false },
     superfConstruida: { required: false, decimals: true  },
-    areaMuroCon:      { required: false, decimals: true  },
+    areaMuro:         { required: false, decimals: true  },
     normaVerif:       { required: true,  decimals: false },
     interesado:       { required: true,  decimals: false },
     ingNombre:        { required: true,  decimals: false },
@@ -98,7 +98,7 @@ export const CATEGORY_FIELD_RULES: Record<string, Partial<Record<FieldKey, Field
     calle:            { required: true,  decimals: false },
     niveles:          { required: true,  decimals: false },
     superfConstruida: { required: false, decimals: true  },
-    areaMuroCon:      { required: false, decimals: true  },
+    areaMuro:         { required: false, decimals: true  },
     normaVerif:       { required: true,  decimals: false },
     interesado:       { required: true,  decimals: false },
     ingNombre:        { required: true,  decimals: false },
@@ -111,7 +111,7 @@ export const CATEGORY_FIELD_RULES: Record<string, Partial<Record<FieldKey, Field
     municipio:     { required: true,  decimals: false },
     luzPuente:     { required: true,  decimals: true  },
     superfTablero: { required: true,  decimals: true  },
-    areaMuroEst:   { required: true,  decimals: true  },
+    areaEstribos:  { required: true,  decimals: true  },
     normaVerif:    { required: true,  decimals: false },
     interesado:    { required: true,  decimals: false },
     ingNombre:     { required: true,  decimals: false },
@@ -125,7 +125,7 @@ export const CATEGORY_FIELD_RULES: Record<string, Partial<Record<FieldKey, Field
     zona:         { required: true,  decimals: false },
     calle:        { required: true,  decimals: false },
     altMuro:      { required: true,  decimals: true  },
-    areaMuroCon:  { required: false, decimals: true  },
+    areaMuro:     { required: false, decimals: true  },
     areaMuroHA:   { required: false, decimals: true  },
     areaMuroHC:   { required: false, decimals: true  },
     normaVerif:   { required: true,  decimals: false },
@@ -141,7 +141,7 @@ export const CATEGORY_FIELD_RULES: Record<string, Partial<Record<FieldKey, Field
     zona:         { required: true,  decimals: false },
     calle:        { required: true,  decimals: false },
     altMuro:      { required: true,  decimals: true  },
-    areaMuroCon:  { required: false, decimals: true  },
+    areaMuro:   { required: false, decimals: true  },
     areaMuroHA:   { required: false, decimals: true  },
     areaMuroHC:   { required: false, decimals: true  },
     normaVerif:   { required: true,  decimals: false },
@@ -475,21 +475,25 @@ export const CATEGORY_FIELD_RULES: Record<string, Partial<Record<FieldKey, Field
 
   // ── INFORMES ──────────────────────────────────────────────────────────
 
-  "INT1": {
-    coordenadas: { required: true,  decimals: false },
-    municipio:   { required: true,  decimals: false },
-    normaAplicacion:  { required: true,  decimals: false },
-    interesado:  { required: true,  decimals: false },
-    ingNombre:   { required: true,  decimals: false },
-    rni:         { required: true,  decimals: false },
-    numCopias:   { required: true,  decimals: false },
+"INT1": {
+    coordenadas:     { required: true,  decimals: false },
+    municipio:       { required: true,  decimals: false },
+    normaAplicacion: { required: true,  decimals: false },
+    areaIngenieria:  { required: true,  decimals: false },  // ← NUEVO
+    temaIngenieria:  { required: true,  decimals: false },  // ← NUEVO
+    interesado:      { required: true,  decimals: false },
+    ingNombre:       { required: true,  decimals: false },
+    rni:             { required: true,  decimals: false },
+    numCopias:       { required: true,  decimals: false },
   },
 
   "INP1": {
     distritoJudicial: { required: true,  decimals: false },
     nurej:            { required: true,  decimals: false },
-    normaAplicacion:       { required: true,  decimals: false },
+    normaAplicacion:  { required: true,  decimals: false },
     nombreJuzgado:    { required: true,  decimals: false },
+    areaIngenieria:   { required: true,  decimals: false },  // ← NUEVO
+    temaIngenieria:   { required: true,  decimals: false },  // ← NUEVO
     ingNombre:        { required: true,  decimals: false },
     rni:              { required: true,  decimals: false },
     numCopias:        { required: true,  decimals: false },

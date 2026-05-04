@@ -146,9 +146,56 @@ export default function Caratulas() {
   );
 
   async function downloadPDF(format: "letter" | "a4" = "letter") {
-    if (!cat) return;
-    await generarCaratulaPDF(formData, cat, documentQRUrl, format, documentSHA256, mainCat);
-  }
+  if (!cat) return;
+  await generarCaratulaPDF(formData, cat, documentQRUrl, format, documentSHA256, mainCat);
+}
+async function enviarABD(): Promise<void> {
+  if (!cat) return;
+
+  // Importar la función Blob que agregamos en generarPDF.ts
+  const { generarCaratulaPDFBlob } = await import("./generarPDF");
+
+  // Generar el PDF como Blob (no descarga, solo el archivo en memoria)
+  const pdfBlob = await generarCaratulaPDFBlob(
+    formData, cat, documentQRUrl, "letter", documentSHA256, mainCat
+  );
+
+  // Armar el paquete multipart con todo
+  const payload = new globalThis.FormData();
+
+  // Datos en texto/JSON
+  payload.append("sha256",        documentSHA256);
+  payload.append("fechaCreacion", new Date().toISOString());
+  payload.append("categoria", JSON.stringify({
+    code:       cat.code,
+    label:      cat.label,
+    disciplina: cat.disciplina,
+    mainCat:    mainCat,
+  }));
+  payload.append("formulario", JSON.stringify({
+    ...formData,
+    interesados: formData.interesados ?? [],
+  }));
+
+  // PDF generado
+  payload.append("caratulaPDF", pdfBlob, `${cat.code}_${documentSHA256}.pdf`);
+
+  // Archivos subidos por el usuario en Paso 3
+  filesMemoria.forEach(f =>   payload.append("memorias",  f, f.name));
+  filesPlanos.forEach(f =>    payload.append("planos",     f, f.name));
+  filesPlanosArq.forEach(f => payload.append("planosArq",  f, f.name));
+
+  // Enviar al backend — tu amigo pone su URL aquí
+  // ── Comentado hasta que el backend esté listo ──
+  // const res = await fetch("https://TU_BACKEND/api/caratulas", {
+  //   method: "POST",
+  //   body: payload,
+  // });
+  // if (!res.ok) throw new Error("Error al guardar en base de datos");
+
+  console.log("📦 Payload listo para BD:", Object.fromEntries(payload.entries()));
+}
+
 
   function resetForm() {
   setStep(1); 
@@ -372,6 +419,7 @@ function handleStepClick(targetStep: number) {
                 filesMemoria={filesMemoria}     setFilesMemoria={setFilesMemoria}
                 filesPlanos={filesPlanos}       setFilesPlanos={setFilesPlanos}
                 filesPlanosArq={filesPlanosArq} setFilesPlanosArq={setFilesPlanosArq}
+                onEnviarABD={enviarABD}
               />
             )}
             {step === 4 && cat && (

@@ -1,73 +1,119 @@
-// /utils/inputSanitizers.ts
+// ─────────────────────────────────────────────────────────────────────────
+// INPUT SANITIZERS
+// Funciones que limpian y restringen el valor de cada campo al escribir
+// ─────────────────────────────────────────────────────────────────────────
 
-// Solo números enteros (0-9)
+// ── ENTEROS ──────────────────────────────────────────────────────────────
+
+/** Solo dígitos 0-9, sin decimales ni otros caracteres */
 export const onlyNumbers = (value: string): string => {
   return value.replace(/[^\d]/g, "");
 };
 
-// Números y punto (para decimales)
+// ── DECIMALES ────────────────────────────────────────────────────────────
+
+/** Números y punto decimal (sin límite de decimales) */
 export const onlyNumbersAndDot = (value: string): string => {
-  let cleaned = value.replace(/[^\d.]/g, "");
+  let cleaned = value.replace(/[^\d.]/g, "").replace(",", ".");
+  const parts = cleaned.split(".");
+  if (parts.length > 2) cleaned = parts[0] + "." + parts.slice(1).join("");
+  return cleaned;
+};
+
+/**
+ * Números con máximo N decimales.
+ * Acepta coma o punto como separador decimal (convierte coma a punto).
+ * Usado para: superficies, áreas, volúmenes, potencias, etc.
+ */
+export const onlyNumbersMaxDecimals = (value: string, maxDecimals: number): string => {
+  // Convertir coma a punto y eliminar todo lo que no sea dígito o punto
+  let cleaned = value.replace(",", ".").replace(/[^\d.]/g, "");
   // Evitar múltiples puntos
   const parts = cleaned.split(".");
-  if (parts.length > 2) {
-    cleaned = parts[0] + "." + parts.slice(1).join("");
+  if (parts.length > 2) cleaned = parts[0] + "." + parts.slice(1).join("");
+  // Limitar decimales
+  const finalParts = cleaned.split(".");
+  if (finalParts.length === 2 && finalParts[1].length > maxDecimals) {
+    cleaned = finalParts[0] + "." + finalParts[1].slice(0, maxDecimals);
   }
   return cleaned;
 };
 
-// Números, punto y menos (para coordenadas que pueden ser negativas)
-export const onlyNumbersDotAndMinus = (value: string): string => {
-  // Permite dígitos, punto y signo menos (solo al inicio)
-  let cleaned = value.replace(/[^\d.-]/g, "");
-  // Solo permitir un signo menos al inicio
-  if (cleaned.indexOf("-") > 0) {
-    cleaned = cleaned.replace(/-/g, "");
-  }
-  // Si hay múltiples signos menos al inicio, dejar solo uno
-  if (cleaned.startsWith("--")) {
-    cleaned = "-" + cleaned.replace(/-/g, "");
-  }
-  // Evitar múltiples puntos
-  const parts = cleaned.split(".");
-  if (parts.length > 2) {
-    cleaned = parts[0] + "." + parts.slice(1).join("");
-  }
-  return cleaned;
-};
+// ── LETRAS ───────────────────────────────────────────────────────────────
 
-// Solo letras, espacios, tildes y ñ
+/** Solo letras, espacios, tildes y ñ. Sin números ni símbolos. */
 export const onlyLetters = (value: string): string => {
-  return value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/g, "");
+  return value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s\-'\.]/g, "");
 };
 
-// Letras y números (para campos "ambos")
+// ── AMBOS ────────────────────────────────────────────────────────────────
+
+/** Letras y números (sin restricción de caracteres especiales básicos) */
 export const onlyLettersAndNumbers = (value: string): string => {
   return value.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚüÜñÑ\s]/g, "");
 };
 
-// Para coordenadas (formato: -16.5, -68.15)
+// ── CAMPOS ESPECIALES ────────────────────────────────────────────────────
+
+/**
+ * Coordenadas — formato: -16.503487; -68.130420
+ * Permite: dígitos, punto, coma, signo menos, punto y coma, espacios.
+ * Bloquea letras y cualquier otro carácter.
+ */
 export const sanitizeCoordinate = (value: string): string => {
-  // Permite: números, punto, coma, signo menos, espacios
-  // Pero BLOQUEA cualquier letra
-  let cleaned = value.replace(/[^\d.,\-\s]/g, "");
-  
-  // Asegurar que el signo menos solo esté al inicio de cada número
-  // Si hay un menos en medio, lo eliminamos
-  const parts = cleaned.split(",");
+  // Permitir solo: dígitos, punto, coma, menos, punto y coma, espacio
+  let cleaned = value.replace(/[^\d.,;\-\s]/g, "");
+
+  // Separar por ; o , para manejar cada coordenada
+  const separator = cleaned.includes(";") ? ";" : ",";
+  const parts = cleaned.split(separator);
+
   const sanitizedParts = parts.map(part => {
     let trimmed = part.trim();
-    // Si tiene más de un menos o menos en medio, limpiar
-    const minusCount = (trimmed.match(/-/g) || []).length;
-    if (minusCount > 1) {
-      trimmed = trimmed.replace(/-/g, "");
-    }
-    if (trimmed.startsWith("-") && trimmed.length > 1) {
-      // Mantener el menos al inicio
-      return "-" + trimmed.replace(/-/g, "");
-    }
-    return trimmed.replace(/-/g, "");
+    // Solo un signo menos, al inicio
+    const hasMinus = trimmed.startsWith("-");
+    trimmed = trimmed.replace(/-/g, "");
+    if (hasMinus) trimmed = "-" + trimmed;
+    // Solo un punto decimal
+    const dotParts = trimmed.split(".");
+    if (dotParts.length > 2) trimmed = dotParts[0] + "." + dotParts.slice(1).join("");
+    return trimmed;
   });
-  
-  return sanitizedParts.join(", ");
+
+  return sanitizedParts.join("; ");
+};
+
+/**
+ * NUREJ — solo números, máximo 13 dígitos.
+ */
+export const sanitizeNurej = (value: string): string => {
+  return value.replace(/[^\d]/g, "").slice(0, 13);
+};
+
+/**
+ * Dimensiones L×A×H — permite números, punto, coma y separadores × o x o *.
+ * Convierte * y x a × automáticamente.
+ * Ejemplo resultado: 2.5 × 1.8 × 3.2
+ */
+export const sanitizeDimensiones = (value: string): string => {
+  // Permitir solo dígitos, punto, coma, espacio, x, ×, *
+  let cleaned = value.replace(/[^\d.,x×*\s]/gi, "");
+  // Normalizar separadores: * y x → ×
+  cleaned = cleaned.replace(/\*/g, " × ").replace(/x/gi, " × ");
+  // Evitar múltiples espacios
+  cleaned = cleaned.replace(/\s{2,}/g, " ");
+  return cleaned;
+};
+
+/**
+ * Números con punto y signo menos (para coordenadas individuales).
+ * Permite negativos, un solo punto decimal.
+ */
+export const onlyNumbersDotAndMinus = (value: string): string => {
+  let cleaned = value.replace(/[^\d.-]/g, "");
+  if (cleaned.indexOf("-") > 0) cleaned = cleaned.replace(/-/g, "");
+  if (cleaned.startsWith("--")) cleaned = "-" + cleaned.replace(/-/g, "");
+  const parts = cleaned.split(".");
+  if (parts.length > 2) cleaned = parts[0] + "." + parts.slice(1).join("");
+  return cleaned;
 };

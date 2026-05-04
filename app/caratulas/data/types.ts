@@ -10,10 +10,10 @@ export type FieldKey =
   // Edificación
   | "niveles"
   // Superficies
-  | "superfConstruir" | "superfConstruida" | "superfTablero" | "superfReforzar"
+  | "superfConstruir" | "superfConstruida" | "superfTablero" | "superfTableroCon" | "superfReforzar"
   | "superfTerreno"   | "superfProspeccion"
   // Muros y estructuras
-  | "areaMuroCon" | "areaMuroRef" | "areaMuroHA" | "areaMuroHC" | "areaMuroEst"
+| "areaMuroCon" | "areaMuroRef" | "areaMuroHA" | "areaMuroHC" | "areaMuroEst" | "areaEstribos" | "areaMuro"
   // Puentes
   | "luzPuente"
   // Muros contención
@@ -34,9 +34,10 @@ export type FieldKey =
   | "tienePlanos" | "numPlanos"
   // Copias
   | "numCopias"
-  // Informe Pericial exclusivos
-  | "distritoJudicial" | "nurej" | "nombreJuzgado";
-
+// Informe Pericial exclusivos
+  | "distritoJudicial" | "nurej" | "nombreJuzgado"
+  // Ingeniería en General — Informes (INT1 / INP1)
+  | "areaIngenieria" | "temaIngenieria";
 export type Disciplina =
   | "Proyectos Estructurales"
   | "Certificados de Estabilidad Estructural"

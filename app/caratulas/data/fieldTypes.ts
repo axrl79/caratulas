@@ -1,140 +1,106 @@
-// Tipos de datos permitidos para cada campo
-export type FieldDataType = 
-  | "numeral"      // Solo números, sin letras
-  | "literal"      // Solo letras, espacios, tildes, ñ
-  | "ambos";       // Texto libre
+// ─────────────────────────────────────────────────────────────────────────
+// TIPOS DE DATOS POR CAMPO
+// ─────────────────────────────────────────────────────────────────────────
+//
+// TIPOS DISPONIBLES:
+//   "ambos"      → texto libre (letras, números, símbolos)
+//   "literal"    → solo letras, espacios y tildes
+//   "numeral"    → solo números enteros (sin decimales)
+//   "decimal2"   → números con máximo 2 decimales
+//   "decimal3"   → números con máximo 3 decimales
+//   "coordenadas"→ formato lat; lng (manejo especial)
+//   "dimensiones"→ formato L×A×H (solo números, punto, x, ×)
+//
+// ─────────────────────────────────────────────────────────────────────────
 
-// Configuración simplificada
+import { FieldKey } from "./types";
+
+export type FieldDataType =
+  | "ambos"
+  | "literal"
+  | "numeral"
+  | "decimal2"
+  | "decimal3"
+  | "coordenadas"
+  | "dimensiones";
+
 export interface FieldTypeConfig {
   type: FieldDataType;
-  allowDecimals?: boolean;
 }
 
-// Mapeo de campos a sus tipos (usa los mismos nombres que en FIELDS)
-export const FIELD_TYPE_MAP: Record<string, FieldTypeConfig> = {
-  // ===== COORDENADAS =====
-  "coordenadas": { type: "ambos" },
-  
-  // ===== AMBOS (letras y números) =====
+export const FIELD_TYPE_MAP: Partial<Record<FieldKey, FieldTypeConfig>> = {
+
+  // ── TEXTO LIBRE (todo valor permitido) ───────────────────────────────
+  "titulo":           { type: "ambos" },
   "distritoJudicial": { type: "ambos" },
-  "ubicacionInstalacion": { type: "ambos" },
-  "municipio": { type: "ambos" },
-  "zona": { type: "ambos" },
-  "calle": { type: "ambos" },
-  "numNiveles": { type: "ambos" },
-  "fuenteEnergia": { type: "ambos" },
+  "municipio":        { type: "ambos" },
+  "zona":             { type: "ambos" },
+  "calle":            { type: "ambos" },
+  "niveles":          { type: "ambos" },
+  "fuenteEnergia":    { type: "ambos" },
   "funcionPrincipal": { type: "ambos" },
-  "normaDiseno": { type: "ambos" },
-  "normaVerificacion": { type: "ambos" },
-  "normaTecnica": { type: "ambos" },
-  "nombreJuzgado": { type: "ambos" },
-  
-  // ===== LITERAL (solo letras) =====
-  "nombreInteresado": { type: "literal" },
-  "interesado": { type: "literal" },
+  "norma":            { type: "ambos" },
+  "normaVerif":       { type: "ambos" },
+  "normaAplicacion":  { type: "ambos" },
+  "nombreJuzgado":    { type: "ambos" },
+  "tensionAlim":      { type: "ambos" },
+  "interesado":       { type: "ambos" },
+  "ubicacionInst":    { type: "ambos" },
+
+  // ── COORDENADAS (manejo especial lat; lng) ───────────────────────────
+  "coordenadas": { type: "coordenadas" },
+
+  // ── SOLO LETRAS ──────────────────────────────────────────────────────
+  // ingNombre: acepta letras y espacios, se autocompletará con "Ing. "
   "ingNombre": { type: "literal" },
-  
-  // ===== NUMERAL (solo números) =====
-  "nurej": { type: "numeral", allowDecimals: false },
-  "alturaMaximaMuro": { type: "numeral", allowDecimals: true },
-  "luzTotalPuente": { type: "numeral", allowDecimals: true },
-  "longitudTotalSistema": { type: "numeral", allowDecimals: true },
-  "numArtefactos": { type: "numeral", allowDecimals: false },
-  "volumenMovimientoTierras": { type: "numeral", allowDecimals: true },
-  "volumenDemolicion": { type: "numeral", allowDecimals: true },
-  "pesoTotal": { type: "numeral", allowDecimals: true },
-  "dimensionesPrincipales": { type: "numeral", allowDecimals: true },
-  "potenciaInstalada": { type: "numeral", allowDecimals: true },
-  "potenciaDemandada": { type: "numeral", allowDecimals: true },
-  "tensionAlimentacion": { type: "numeral", allowDecimals: true },
-  "superficieAConstruir": { type: "numeral", allowDecimals: true },
-  "superficieTableroAConstruir": { type: "numeral", allowDecimals: true },
-  "superficieAReforzar": { type: "numeral", allowDecimals: true },
-  "superficieConstruida": { type: "numeral", allowDecimals: true },
-  "superficieTablero": { type: "numeral", allowDecimals: true },
-  "superficieTerreno": { type: "numeral", allowDecimals: true },
-  "superficieProspeccion": { type: "numeral", allowDecimals: true },
-  "areaMuroContencionAConstruir": { type: "numeral", allowDecimals: true },
-  "areaEstribosAConstruir": { type: "numeral", allowDecimals: true },
-  "areaMuroContencionAReforzar": { type: "numeral", allowDecimals: true },
-  "areaMuroContencion": { type: "numeral", allowDecimals: true },
-  "areaEstribos": { type: "numeral", allowDecimals: true },
-  "areaMuroContencionHormigonArmado": { type: "numeral", allowDecimals: true },
-  "areaMuroContencionHormigonCiclipeo": { type: "numeral", allowDecimals: true },
-  "rni": { type: "numeral", allowDecimals: false },
-  "numPlanos": { type: "numeral", allowDecimals: false },
-  "numCopias": { type: "numeral", allowDecimals: false },
+
+  // ── SOLO NÚMEROS ENTEROS (sin decimales) ─────────────────────────────
+  "nurej":       { type: "numeral" }, // máximo 13 dígitos (se controla en sanitizer)
+  "rni":         { type: "numeral" },
+  "numPlanos":   { type: "numeral" },
+  "numCopias":   { type: "numeral" },
+  "numArtefactos":{ type: "numeral" },
+
+  // ── NÚMEROS CON MÁXIMO 2 DECIMALES ───────────────────────────────────
+  "altMuro":         { type: "decimal2" },
+  "luzPuente":       { type: "decimal2" },
+  "volMovTierras":   { type: "decimal2" },
+  "volDemolicion":   { type: "decimal2" },
+  "pesoTotal":       { type: "decimal2" },
+  "potenciaInst":    { type: "decimal2" },
+  "potenciaDem":     { type: "decimal2" },
+  "superfConstruir": { type: "decimal2" },
+  "superfTableroCon":{ type: "decimal2" },
+  "superfReforzar":  { type: "decimal2" },
+  "superfConstruida":{ type: "decimal2" },
+  "superfTablero":   { type: "decimal2" },
+  "superfTerreno":   { type: "decimal2" },
+  "areaMuroCon":     { type: "decimal2" },
+  "areaMuroEst":     { type: "decimal2" },
+  "areaMuroRef":     { type: "decimal2" },
+  "areaMuro":        { type: "decimal2" },
+  "areaEstribos":    { type: "decimal2" },
+  "areaMuroHA":      { type: "decimal2" },
+  "areaMuroHC":      { type: "decimal2" },
+
+  // ── NÚMEROS CON MÁXIMO 3 DECIMALES ───────────────────────────────────
+  "superfProspeccion": { type: "decimal3" },
+  "longSistema":       { type: "decimal3" },
+
+  // ── DIMENSIONES ESPECIALES L×A×H ─────────────────────────────────────
+  // Solo permite: números, punto, coma, x, ×
+  "dimensiones": { type: "dimensiones" },
 };
 
-// Función para obtener el tipo de un campo
-export function getFieldType(key: string): FieldDataType | null {
-  return FIELD_TYPE_MAP[key]?.type || null;
+// ── FUNCIONES DE CONSULTA ────────────────────────────────────────────────
+
+/** Retorna el tipo de dato del campo. Por defecto "ambos" si no está mapeado. */
+export function getFieldType(key: string): FieldDataType {
+  return FIELD_TYPE_MAP[key as FieldKey]?.type ?? "ambos";
 }
 
-// Función para saber si permite decimales
+/** Retorna true si el campo admite decimales. */
 export function allowsDecimals(key: string): boolean {
-  return FIELD_TYPE_MAP[key]?.allowDecimals ?? false;
-}
-
-// Validación SIMPLE y EFECTIVA
-export function validateByType(key: string, value: string): { valid: boolean; message: string; cleanValue: string } {
-  // Si está vacío, es válido (opcional)
-  if (!value || value.trim() === "") {
-    return { valid: true, message: "", cleanValue: "" };
-  }
-  
-  const type = getFieldType(key);
-  const trimmed = value.trim();
-  
-  switch (type) {
-    case "numeral": {
-      // Limpiar: solo números, punto y coma (convertir coma a punto)
-      let cleaned = trimmed.replace(",", ".");
-      // Eliminar todo lo que no sea número o punto
-      cleaned = cleaned.replace(/[^\d.]/g, "");
-      // Evitar múltiples puntos
-      const parts = cleaned.split(".");
-      if (parts.length > 2) {
-        cleaned = parts[0] + "." + parts.slice(1).join("");
-      }
-      
-      // Validar que sea un número
-      const num = parseFloat(cleaned);
-      if (isNaN(num)) {
-        return { valid: false, message: "Solo se permiten números", cleanValue: trimmed };
-      }
-      
-      // Validar que no sea negativo
-      if (num < 0) {
-        return { valid: false, message: "No se permiten números negativos", cleanValue: trimmed };
-      }
-      
-      // Si no permite decimales, redondear
-      if (!allowsDecimals(key) && cleaned.includes(".")) {
-        const rounded = Math.floor(num).toString();
-        return { valid: true, message: "", cleanValue: rounded };
-      }
-      
-      return { valid: true, message: "", cleanValue: cleaned };
-    }
-    
-    case "literal": {
-      // Solo letras, espacios, tildes, ñ, guiones y apóstrofes
-      const literalRegex = /^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s\-']+$/;
-      if (!literalRegex.test(trimmed)) {
-        return { valid: false, message: "Solo se permiten letras (sin números)", cleanValue: trimmed };
-      }
-      return { valid: true, message: "", cleanValue: trimmed };
-    }
-    
-    case "ambos":
-    default: {
-      // Para "ambos", permitimos casi todo excepto caracteres raros
-      const ambosRegex = /^[a-zA-Z0-9áéíóúÁÉÍÓÚüÜñÑ\s\.,\-_/#()°]+$/;
-      if (!ambosRegex.test(trimmed)) {
-        return { valid: false, message: "Caracteres no permitidos", cleanValue: trimmed };
-      }
-      return { valid: true, message: "", cleanValue: trimmed };
-    }
-  }
+  const t = getFieldType(key);
+  return t === "decimal2" || t === "decimal3" || t === "dimensiones";
 }
