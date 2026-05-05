@@ -436,15 +436,16 @@ function handleStepClick(targetStep: number) {
         {/* ── COLUMNA DERECHA: 40% sticky ── */}
         <div className="sib-guide">
           <FieldGuide 
-            activeGuideKey={activeGuideKey} 
-            onFillFields={(fields) => setFormData(prev => ({ ...prev, ...fields }))}
-            theme={C}
-            isDark={themeMode !== "light"}
-            cat={cat}
-            filesMemoria={filesMemoria}     setFilesMemoria={setFilesMemoria}
-            filesPlanos={filesPlanos}       setFilesPlanos={setFilesPlanos}
-            filesPlanosArq={filesPlanosArq} setFilesPlanosArq={setFilesPlanosArq}
-          />
+  activeGuideKey={activeGuideKey} 
+  onFillFields={(fields) => setFormData(prev => ({ ...prev, ...fields }))}
+  theme={C}
+  isDark={themeMode !== "light"}
+  cat={cat}
+  currentStep={step}
+  filesMemoria={filesMemoria}     setFilesMemoria={setFilesMemoria}
+  filesPlanos={filesPlanos}       setFilesPlanos={setFilesPlanos}
+  filesPlanosArq={filesPlanosArq} setFilesPlanosArq={setFilesPlanosArq}
+/>
         </div>
       </div>
 
@@ -470,14 +471,16 @@ function handleStepClick(targetStep: number) {
           }} onClick={e => e.stopPropagation()}>
             <div style={{ width: 40, height: 4, background: C.border, borderRadius: 2, margin: "12px auto", opacity: 0.5 }} />
             <FieldGuide 
-              activeGuideKey={activeGuideKey} 
-              onFillFields={(fields) => setFormData(prev => ({ ...prev, ...fields }))}
-              theme={C} isDark={themeMode !== "light"} cat={cat}
-              filesMemoria={filesMemoria}     setFilesMemoria={setFilesMemoria}
-              filesPlanos={filesPlanos}       setFilesPlanos={setFilesPlanos}
-              filesPlanosArq={filesPlanosArq} setFilesPlanosArq={setFilesPlanosArq}
-              onClose={() => setShowMobileGuide(false)}
-            />
+  activeGuideKey={activeGuideKey} 
+  onFillFields={(fields) => setFormData(prev => ({ ...prev, ...fields }))}
+  theme={C}
+  isDark={themeMode !== "light"}
+  cat={cat}
+  currentStep={step}
+  filesMemoria={filesMemoria}     setFilesMemoria={setFilesMemoria}
+  filesPlanos={filesPlanos}       setFilesPlanos={setFilesPlanos}
+  filesPlanosArq={filesPlanosArq} setFilesPlanosArq={setFilesPlanosArq}
+/>
           </div>
         </div>
       )}

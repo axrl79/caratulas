@@ -50,13 +50,9 @@ export default function Paso2Formulario({
 
   const sanitizeInput = (key: FieldKey, rawValue: string): string => {
     const fieldType = getFieldType(key);
-
-    // ── Casos especiales con lógica propia ──
     if (key === "coordenadas")  return sanitizeCoordinate(rawValue);
     if (key === "nurej")        return sanitizeNurej(rawValue);
     if (key === "dimensiones")  return sanitizeDimensiones(rawValue);
-
-    // ── Por tipo de dato ──
     switch (fieldType) {
       case "decimal2":    return onlyNumbersMaxDecimals(rawValue, 2);
       case "decimal3":    return onlyNumbersMaxDecimals(rawValue, 3);
@@ -65,7 +61,7 @@ export default function Paso2Formulario({
       case "ambos":
       case "coordenadas":
       case "dimensiones":
-      default:            return rawValue; // texto libre sin restricción
+      default:            return rawValue;
     }
   };
 
@@ -110,16 +106,16 @@ export default function Paso2Formulario({
     fontWeight: 800, marginBottom: 20, display: "flex", alignItems: "center", gap: 12,
   };
   const inputStyle = (): React.CSSProperties => ({
-  width: "100%", minWidth: 0, background: C.inputBg,
-  border: `1.5px solid ${C.border}`,
-  borderRadius: 10, padding: "14px 16px", color: C.textMain, fontSize: "1em",
-  outline: "none", transition: "all 0.2s",
-});
+    width: "100%", minWidth: 0, background: C.inputBg,
+    border: `1.5px solid ${C.border}`,
+    borderRadius: 10, padding: "14px 16px", color: C.textMain, fontSize: "1em",
+    outline: "none", transition: "all 0.2s",
+  });
   const labelStyle: React.CSSProperties = {
-  fontSize: "0.85em", textTransform: "uppercase", letterSpacing: 1, color: C.textSec,
-  fontWeight: 700, display: "flex", alignItems: "center", marginBottom: 10, gap: 8, flexWrap: "wrap",
-  minHeight: "2.4em",   // ← altura mínima fija para que todos los labels ocupen lo mismo
-};
+    fontSize: "0.85em", textTransform: "uppercase", letterSpacing: 1, color: C.textSec,
+    fontWeight: 700, display: "flex", alignItems: "center", marginBottom: 10, gap: 8, flexWrap: "wrap",
+    minHeight: "2.4em",
+  };
   const btnPrimary: React.CSSProperties = {
     background: C.accent, color: themeMode === "light" ? "#fff" : C.deepGreen,
     border: "none", borderRadius: 10, padding: "14px 32px",
@@ -139,7 +135,6 @@ export default function Paso2Formulario({
     padding: "6px 12px", color: "#ef4444", fontWeight: 700, fontSize: "0.85em", cursor: "pointer",
   };
 
-  // ── Renderizado de input con BLOQUEO (onFocus activa la guía, onMouseEnter eliminado) ──
   const renderInput = (key: FieldKey, labelOverride?: string) => {
     const field = FIELDS.find(f => f.key === key);
     if (!field) return null;
@@ -173,7 +168,6 @@ export default function Paso2Formulario({
           onChange={changeHandler}
           onFocus={() => {
             setActiveGuideKey(key);
-            // Autocomplete especiales al hacer foco si el campo está vacío
             if (key === "ingNombre" && !value) {
               handleInputChange(key, "Ing. ");
             }
@@ -197,22 +191,17 @@ export default function Paso2Formulario({
         </div>
       </div>
 
-      {/* Título (siempre visible, sin onMouseEnter) */}
+      {/* Título */}
       <div style={{ marginBottom: 32 }}>
         <div style={secLabel}>
           Título del Proyecto
           <span style={{ flex: 1, height: 1, background: C.border }} />
         </div>
-        <label style={labelStyle}>
-          Título del Proyecto 
-        </label>
+        <label style={labelStyle}>Título del Proyecto</label>
         <input
           type="text"
           value={formData.titulo || ""}
-          onChange={e => {
-            let val = e.target.value;
-            handleInputChange("titulo", val);
-          }}
+          onChange={e => handleInputChange("titulo", e.target.value)}
           onFocus={() => {
             setActiveGuideKey("titulo");
             if (!formData.titulo) handleInputChange("titulo", '"');
@@ -231,28 +220,27 @@ export default function Paso2Formulario({
             Datos del Proyecto
             <span style={{ flex: 1, height: 1, background: C.border }} />
           </div>
-<div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 24, marginBottom: 40, alignItems: "end" }}>
-  {peritajeActiveFields.map(f => renderInput(f.key))}
-  {projectFields.map(f => renderInput(f.key))}
-</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 24, marginBottom: 40, alignItems: "end" }}>
+            {peritajeActiveFields.map(f => renderInput(f.key))}
+            {projectFields.map(f => renderInput(f.key))}
+          </div>
         </>
       )}
 
       {/* Interesados */}
       {cat.active.includes("interesado") && cat.code !== "INP1" && (
-
         <>
           <div style={secLabel}>
             Interesado(s)
             <span style={{ flex: 1, height: 1, background: C.border }} />
           </div>
           <div>
-            <label style={labelStyle}>Interesado 1 </label>
+            <label style={labelStyle}>Interesado 1</label>
             <input
               type="text"
               value={formData.interesado || ""}
               onChange={e => handleBlockedChange("interesado", e.target.value)}
-              onFocus={() => setActiveGuideKey("interesado")} // ← solo onFocus
+              onFocus={() => setActiveGuideKey("interesado")}
               placeholder="Nombre completo"
               style={inputStyle()}
               onFocusCapture={e => { e.currentTarget.style.borderColor = C.accent; }}
@@ -280,88 +268,75 @@ export default function Paso2Formulario({
         </>
       )}
 
-      {/* Nombre del Juzgado — solo INP1, reemplaza al interesado */}
-{cat.code === "INP1" && (
-  <>
-    <div style={secLabel}>
-      Nombre del Juzgado
-      <span style={{ flex: 1, height: 1, background: C.border }} />
-    </div>
-    <div>
-      <label style={labelStyle}>Nombre del Juzgado</label>
-      <input
-        type="text"
-        value={formData.nombreJuzgado || ""}
-        onChange={e => handleInputChange("nombreJuzgado", e.target.value)}
-        onFocus={() => setActiveGuideKey("nombreJuzgado")}
-        placeholder="Ej: Juzgado 1° Civil de La Paz"
-        style={inputStyle()}
-        onFocusCapture={e => { e.currentTarget.style.borderColor = C.accent; }}
-        onBlurCapture={e => { e.currentTarget.style.borderColor = C.border; }}
-      />
-    </div>
-    <div style={{ marginBottom: 40 }} />
-  </>
-)}
+      {/* Nombre del Juzgado — solo INP1 */}
+      {cat.code === "INP1" && (
+        <>
+          <div style={secLabel}>
+            Nombre del Juzgado
+            <span style={{ flex: 1, height: 1, background: C.border }} />
+          </div>
+          <div>
+            <label style={labelStyle}>Nombre del Juzgado</label>
+            <input
+              type="text"
+              value={formData.nombreJuzgado || ""}
+              onChange={e => handleInputChange("nombreJuzgado", e.target.value)}
+              onFocus={() => setActiveGuideKey("nombreJuzgado")}
+              placeholder="Ej: Juzgado 1° Civil de La Paz"
+              style={inputStyle()}
+              onFocusCapture={e => { e.currentTarget.style.borderColor = C.accent; }}
+              onBlurCapture={e => { e.currentTarget.style.borderColor = C.border; }}
+            />
+          </div>
+          <div style={{ marginBottom: 40 }} />
+        </>
+      )}
+
+      {/* Especialización del Informe — INT1 e INP1 */}
+      {(cat.code === "INT1" || cat.code === "INP1") && (
+        <>
+          <div style={secLabel}>
+            Especialización del Informe
+            <span style={{ flex: 1, height: 1, background: C.border }} />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 24, marginBottom: 40, alignItems: "end" }}>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <label style={labelStyle}>
+                Área de Ingeniería
+                <span style={{ color: C.accent, fontSize: "0.7em" }}>ej: Sistemas, Industrial, Civil</span>
+              </label>
+              <input
+                type="text"
+                value={formData.areaIngenieria || ""}
+                onChange={e => handleInputChange("areaIngenieria", e.target.value)}
+                onFocus={() => setActiveGuideKey("areaIngenieria")}
+                placeholder="Ej: Sistemas, Industrial, Civil..."
+                style={{ ...inputStyle(), marginTop: "auto" }}
+                onFocusCapture={e => { e.currentTarget.style.borderColor = C.accent; }}
+                onBlurCapture={e => { e.currentTarget.style.borderColor = C.border; }}
+              />
+            </div>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <label style={labelStyle}>
+                Tema de Ingeniería
+                <span style={{ color: C.accent, fontSize: "0.7em" }}>ej: Base de Datos, Maquinaria</span>
+              </label>
+              <input
+                type="text"
+                value={formData.temaIngenieria || ""}
+                onChange={e => handleInputChange("temaIngenieria", e.target.value)}
+                onFocus={() => setActiveGuideKey("temaIngenieria")}
+                placeholder="Ej: Base de Datos, Maquinaria..."
+                style={{ ...inputStyle(), marginTop: "auto" }}
+                onFocusCapture={e => { e.currentTarget.style.borderColor = C.accent; }}
+                onBlurCapture={e => { e.currentTarget.style.borderColor = C.border; }}
+              />
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Responsables */}
-
-      {/* ── Campos especiales para INT1 e INP1 ── */}
-{(cat.code === "INT1" || cat.code === "INP1") && (
-  <>
-    <div style={secLabel}>
-      Especialización del Informe
-      <span style={{ flex: 1, height: 1, background: C.border }} />
-    </div>
-    <div style={{
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-      gap: 24,
-      marginBottom: 40,
-      alignItems: "end",
-    }}>
-      {/* Campo 1: Área de Ingeniería */}
-      <div style={{ display: "flex", flexDirection: "column" }}>
-        <label style={labelStyle}>
-          Área de Ingeniería
-          <span style={{ color: C.accent, fontSize: "0.7em" }}>
-            ej: Sistemas, Industrial, Civil
-          </span>
-        </label>
-        <input
-          type="text"
-          value={formData.areaIngenieria || ""}
-          onChange={e => handleInputChange("areaIngenieria", e.target.value)}
-          onFocus={() => setActiveGuideKey("areaIngenieria")}
-          placeholder="Ej: Sistemas, Industrial, Civil..."
-          style={{ ...inputStyle(), marginTop: "auto" }}
-          onFocusCapture={e => { e.currentTarget.style.borderColor = C.accent; }}
-          onBlurCapture={e => { e.currentTarget.style.borderColor = C.border; }}
-        />
-      </div>
-
-      {/* Campo 2: Tema de Ingeniería */}
-      <div style={{ display: "flex", flexDirection: "column" }}>
-        <label style={labelStyle}>
-          Tema de Ingeniería
-          <span style={{ color: C.accent, fontSize: "0.7em" }}>
-            ej: Base de Datos, Maquinaria, Estructuras
-          </span>
-        </label>
-        <input
-          type="text"
-          value={formData.temaIngenieria || ""}
-          onChange={e => handleInputChange("temaIngenieria", e.target.value)}
-          onFocus={() => setActiveGuideKey("temaIngenieria")}
-          placeholder="Ej: Base de Datos, Maquinaria..."
-          style={{ ...inputStyle(), marginTop: "auto" }}
-          onFocusCapture={e => { e.currentTarget.style.borderColor = C.accent; }}
-          onBlurCapture={e => { e.currentTarget.style.borderColor = C.border; }}
-        />
-      </div>
-    </div>
-  </>
-)}
       {responsibleFields.filter(f => f.key !== "interesado").length > 0 && (
         <>
           <div style={secLabel}>
@@ -414,13 +389,15 @@ export default function Paso2Formulario({
               Cuenta con Planos
             </span>
           </label>
+
           {tienePlanos && (
             <div>
-              <label style={labelStyle}>Número de Planos </label>
+              <label style={labelStyle}>Número de Planos</label>
               <input
                 type="text"
                 value={formData.numPlanos || ""}
                 onChange={e => handleBlockedChange("numPlanos", e.target.value)}
+                onFocus={() => setActiveGuideKey("numPlanos")} // ← AGREGADO
                 placeholder="Ej: 5 (solo números)"
                 style={inputStyle()}
                 onFocusCapture={e => { e.currentTarget.style.borderColor = C.accent; }}
@@ -440,11 +417,12 @@ export default function Paso2Formulario({
             <span style={{ flex: 1, height: 1, background: C.border }} />
           </div>
           <div>
-            <label style={labelStyle}>Número de Copias </label>
+            <label style={labelStyle}>Número de Copias</label>
             <input
               type="text"
               value={formData.numCopias || ""}
               onChange={e => handleBlockedChange("numCopias", e.target.value)}
+              onFocus={() => setActiveGuideKey("numCopias")} // ← AGREGADO
               placeholder="Ej: 3 (solo números)"
               style={inputStyle()}
               onFocusCapture={e => { e.currentTarget.style.borderColor = C.accent; }}

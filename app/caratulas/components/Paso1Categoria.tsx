@@ -116,7 +116,7 @@ useEffect(() => {
       {subCat && (
   <>
     <div ref={formatoRef} style={{ width: "100%", height: 1, background: C.border, marginBottom: 32, scrollMarginTop: "100px" }} />
-    <div style={secLabel}>3. Formato de Proyecto Oficial</div>
+    <div style={secLabel}>3. Tipo de Proyecto</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
             {CATEGORIAS.map((c, i) => {
               if (c.disciplina !== subCat) return null;

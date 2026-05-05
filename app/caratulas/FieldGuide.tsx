@@ -905,10 +905,97 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
       description: "Denominación completa del juzgado o tribunal que solicita el peritaje.",
       example: "Juzgado 1° Civil de La Paz",
     },
+
+    "areaIngenieria": {
+  title: "Área de Ingeniería",
+  description: "Especifica la rama de la ingeniería a la que pertenece el informe. Este valor aparecerá en el título principal de la carátula junto al tipo de informe.",
+  example: "Sistemas, Industrial, Civil, Eléctrica, Mecánica",
+  notes: [
+    "Se escribirá con mayúscula inicial.",
+    "Ejemplos válidos: Sistemas, Industrial, Civil, Eléctrica, Mecánica, Sanitaria.",
+    "Este campo complementa el título: 'INFORME TÉCNICO SISTEMAS'.",
+  ],
+},
+"temaIngenieria": {
+  title: "Tema de Ingeniería",
+  description: "Especifica el tema o materia específica del informe dentro del área de ingeniería indicada. Aparecerá en el subtítulo de la carátula.",
+  example: "Base de Datos, Maquinaria, Estructuras, Redes Eléctricas",
+  notes: [
+    "Se escribirá con mayúscula inicial.",
+    "Debe ser coherente con el Área de Ingeniería seleccionada.",
+    "Este campo complementa el subtítulo: '– Base de Datos'.",
+  ],
+},
+"numCopias": {
+  title: "Número de Copias",
+  description: "Indica la cantidad de copias físicas del proyecto que serán presentadas ante la SIB para su visado. Cada copia debe estar completa, firmada y sellada por el ingeniero proyectista.",
+  example: "3",
+  notes: [
+    "El número mínimo de copias requerido es 3.",
+    "Solo se aceptan números enteros, sin decimales.",
+    "Cada copia debe incluir memoria de cálculo, planos y carátula.",
+  ],
+},
+"numPlanos": {
+  title: "Número de Planos",
+  description: "Indica la cantidad total de láminas de planos que conforman el proyecto. Se contabilizan todos los planos de la especialidad: planta, cortes, detalles, etc.",
+  example: "8",
+  notes: [
+    "Solo se aceptan números enteros, sin decimales.",
+    "Contar cada lámina individualmente, sin importar el tamaño (A1, A0, etc.).",
+    "Este número debe coincidir exactamente con los planos físicos presentados.",
+  ],
+},
   };
 
   return FIELD_GUIDES[key] || null;
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MENSAJES DE BIENVENIDA POR PASO
+// ═══════════════════════════════════════════════════════════════════════════
+const STEP_DEFAULT_GUIDES: Record<number, { icon: string; title: string; steps: { icon: string; text: string }[]; note?: string }> = {
+  1: {
+    icon: "🗂️",
+    title: "Selecciona tu tipo de proyecto",
+    steps: [
+      { icon: "1️⃣", text: "Elige la Especialidad principal (Estructural, Sanitario, Eléctrico…)" },
+      { icon: "2️⃣", text: "Selecciona la Disciplina secundaria que corresponde a tu trabajo" },
+      { icon: "3️⃣", text: "Elige el Tipo de Proyecto específico para activar el siguiente paso" },
+    ],
+    note: "Los tres campos son obligatorios para continuar.",
+  },
+  2: {
+    icon: "📋",
+    title: "Completa los datos del proyecto",
+    steps: [
+      { icon: "✏️", text: "Haz clic en cualquier campo del formulario para ver su definición técnica y ejemplos aquí" },
+      { icon: "📐", text: "Llena todos los campos que correspondan a tu proyecto con precisión" },
+      { icon: "➖", text: 'Si un dato no aplica o no lo tienes, escribe  " - "  para dejarlo en blanco de forma válida' },
+    ],
+    note: "Los datos deben coincidir exactamente con los planos y memorias de cálculo.",
+  },
+  3: {
+    icon: "👁️",
+    title: "Revisa tu carátula y sube documentos",
+    steps: [
+      { icon: "🪪", text: "Verifica que todos los datos de la carátula sean correctos antes de continuar" },
+      { icon: "📲", text: "El código QR te llevará al portal de verificación del estado de tu trámite en la SIB" },
+      { icon: "📎", text: "Sube las Memorias de Cálculo, Planos y Planos Arquitectónicos si tu proyecto los requiere — si no, deja el campo vacío" },
+    ],
+    note: "Una vez descargada la carátula no podrás modificar los datos.",
+  },
+  4: {
+    icon: "⬇️",
+    title: "Descarga tus documentos",
+    steps: [
+      { icon: "📄", text: "Descarga la carátula en PDF lista para imprimir y presentar ante la SIB" },
+      { icon: "📦", text: "Descarga los archivos complementarios y guías de llenado según el tipo de proyecto seleccionado" },
+      { icon: "🗜️", text: 'Usa "Descargar todo" para obtener todos los archivos en un solo paquete, o descárgalos uno por uno' },
+    ],
+    note: '¿Necesitas hacer otra carátula? Usa el botón "Nueva Carátula" para empezar de nuevo.',
+  },
+};
 
 // ═══════════════════════════════════════════════════════════════════════════
 // INTERFACES Y TIPOS
@@ -933,6 +1020,7 @@ interface FieldGuideProps {
   filesPlanosArq?: File[];
   setFilesPlanosArq?: React.Dispatch<React.SetStateAction<File[]>>;
   onClose?: () => void;
+  currentStep?: number;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1064,20 +1152,6 @@ function UploadPanel({ uploadKey, guide, theme, isDark, filesMemoria, setFilesMe
         <div style={{ display: "inline-block", background: theme.accent, color: isDark ? "#0a1a12" : "#fff", borderRadius: 8, padding: "8px 20px", fontWeight: 700, fontSize: "0.82em" }}>+ Seleccionar archivos</div>
         <input ref={inputRef} type="file" multiple style={{ display: "none" }} onChange={e => addFiles(e.target.files)} />
       </div>
-      <button
-        onClick={() => alert("Integración con Google Drive próximamente")}
-        style={{ width: "100%", background: "transparent", border: `1px solid ${theme.border}`, borderRadius: 10, padding: "11px 16px", fontWeight: 700, fontSize: "0.82em", color: theme.textSec, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
-      >
-        <svg width="16" height="16" viewBox="0 0 87.3 78" fill="none">
-          <path d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3L27.5 53H0c0 1.55.4 3.1 1.2 4.5L6.6 66.85z" fill="#0066da"/>
-          <path d="M43.65 25L29.9 1.2C28.55 2 27.4 3.1 26.6 4.5L1.2 48.5A9 9 0 000 53h27.5L43.65 25z" fill="#00ac47"/>
-          <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5H60.1L73.55 76.8z" fill="#ea4335"/>
-          <path d="M43.65 25L57.4 1.2A9.06 9.06 0 0053.3.05H34C31.5.05 29.2 1.3 27.9 3.35L43.65 25z" fill="#00832d"/>
-          <path d="M60.1 53H27.5L13.75 76.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2L60.1 53z" fill="#2684fc"/>
-          <path d="M73.4 26.5L60.7 4.5c-.8-1.4-1.95-2.5-3.3-3.3L43.65 25l16.45 28h27.45c0-1.55-.4-3.1-1.2-4.5L73.4 26.5z" fill="#ffba00"/>
-        </svg>
-        Subir desde Google Drive
-      </button>
       {files.length > 0 && (
         <div style={{ background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, overflow: "hidden" }}>
           <div style={{ padding: "10px 14px", borderBottom: `1px solid ${theme.border}`, fontSize: "0.78em", color: theme.accent, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1 }}>
@@ -1121,6 +1195,7 @@ export default function FieldGuide({
   filesPlanos = [], setFilesPlanos,
   filesPlanosArq = [], setFilesPlanosArq,
   onClose,
+  currentStep = 1,
 }: FieldGuideProps) {
   const guide = activeGuideKey ? getDynamicGuide(activeGuideKey, cat || null) : null;
   const isMapField = activeGuideKey ? MAP_FIELDS.includes(activeGuideKey) : false;
@@ -1208,12 +1283,41 @@ export default function FieldGuide({
       {/* ── CUERPO SCROLLEABLE ── */}
       <div className="fg-body">
         {!guide && !isMapField && !isUploadKey ? (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", opacity: 0.6, textAlign: "center" }}>
-            <div style={{ fontSize: 48, marginBottom: 20 }}>👆</div>
-            <div style={{ color: theme.textMain, fontSize: 16, fontWeight: 600, padding: "0 20px" }}>
-              Haz clic sobre un campo para ver su definición técnica aquí.
-            </div>
-          </div>
+          (() => {
+            const sg = STEP_DEFAULT_GUIDES[currentStep];
+            if (!sg) return null;
+            return (
+              <div style={{ display: "flex", flexDirection: "column", gap: 20, animation: "fadeSlideUp 0.4s ease" }}>
+                <div style={{ textAlign: "center", paddingTop: 8 }}>
+                  <div style={{ fontSize: 52, marginBottom: 14 }}>{sg.icon}</div>
+                  <div style={{ color: theme.textMain, fontSize: 16, fontWeight: 800, lineHeight: 1.4 }}>{sg.title}</div>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  {sg.steps.map((s, i) => (
+                    <div key={i} style={{
+                      display: "flex", alignItems: "flex-start", gap: 14,
+                      background: theme.cardBg, border: `1px solid ${theme.border}`,
+                      borderRadius: 12, padding: "14px 16px",
+                    }}>
+                      <span style={{ fontSize: 22, flexShrink: 0, marginTop: 1 }}>{s.icon}</span>
+                      <span style={{ fontSize: 13, color: theme.textMain, fontWeight: 500, lineHeight: 1.6 }}>{s.text}</span>
+                    </div>
+                  ))}
+                </div>
+                {sg.note && (
+                  <div style={{
+                    background: isDark ? "rgba(245,158,11,0.1)" : "#fffbeb",
+                    border: `1px solid ${isDark ? "rgba(245,158,11,0.3)" : "#fcd34d"}`,
+                    borderRadius: 12, padding: "14px 16px",
+                    display: "flex", alignItems: "flex-start", gap: 10,
+                  }}>
+                    <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
+                    <span style={{ fontSize: 12, color: isDark ? "#fcd34d" : "#92400e", fontWeight: 600, lineHeight: 1.6 }}>{sg.note}</span>
+                  </div>
+                )}
+              </div>
+            );
+          })()
         ) : (
           <>
             {isUploadKey && guide && setFilesMemoria && setFilesPlanos && setFilesPlanosArq ? (
