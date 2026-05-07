@@ -282,14 +282,13 @@ function drawDataFields(
   separadorY: number,
   cuadroBottom: number
 ) {
+  if (dataFields.length === 0) return;
+
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5);
   const lineH = doc.getTextDimensions("A").h;
 
-  // Espaciado fijo normal entre campos (sin redistribución)
-  const GAP_NORMAL = 5;
-
-  // PASO 1: pre-calcular líneas reales de cada campo
+  // ── PASO 1: pre-calcular líneas reales de cada campo ──
   const camposConLineas = dataFields.map(k => {
     const val   = (formData[k as keyof FormData] as string) || "";
     const label = (FIELD_LABELS[k as FieldKey] ?? `${k.toUpperCase()}:`) + " ";
@@ -301,52 +300,89 @@ function drawDataFields(
     return doc.splitTextToSize(val, maxW - lw).length;
   });
 
-  // PASO 2: decidir si algún campo ocupa más de 1 línea
-  const hayCampoLargo = camposConLineas.some(n => n > 1);
-
-  // Si hay campo largo → redistribuir equitativamente para que todo quepa
-  // Si no → espaciado fijo normal desde arriba
-  const totalLineas       = camposConLineas.reduce((a, b) => a + b, 0);
+  // ── PASO 2: calcular espacio disponible y gap óptimo ──
   const espacioDisponible = cuadroBottom - separadorY - 3;
-  const gapEquitativo     = (espacioDisponible - lineH * totalLineas) / Math.max(1, dataFields.length);
-  const gapFinal          = hayCampoLargo ? gapEquitativo : GAP_NORMAL;
+  const totalAltura       = camposConLineas.reduce((sum, n) => sum + lineH * n, 0);
+  const espacioParaGaps   = espacioDisponible - totalAltura;
+  const numGaps           = dataFields.length; // gap después de cada campo (incluyendo último como padding)
 
-  // PASO 3: dibujar
+  // Gap ideal: distribuir el espacio sobrante entre todos los campos
+  // Mínimo 0.8mm para que no queden pegados, máximo 5mm para que no queden muy separados
+  const GAP_MAX = 5;
+  const GAP_MIN = 0.8;
+  const gapFinal = Math.min(GAP_MAX, Math.max(GAP_MIN, espacioParaGaps / numGaps));
+
+  // ── PASO 3: si aun así no cabe, reducir fontSize de todos ──
+  // Calcular altura total con el gap mínimo
+  const alturaConGapMin = totalAltura + GAP_MIN * numGaps;
+  let fontSizeGlobal = 8.5;
+  if (alturaConGapMin > espacioDisponible) {
+    // Reducir font hasta que quepa
+    let fs = 8.5;
+    while (fs >= 6) {
+      fs -= 0.25;
+      doc.setFontSize(fs);
+      const lh = doc.getTextDimensions("A").h;
+      const totalH = dataFields.reduce((sum, k) => {
+        const val   = (formData[k as keyof FormData] as string) || "";
+        const label = (FIELD_LABELS[k as FieldKey] ?? `${k.toUpperCase()}:`) + " ";
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(fs);
+        const lw = doc.getTextWidth(label);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(fs);
+        return sum + lh * doc.splitTextToSize(val, maxW - lw).length;
+      }, 0);
+      if (totalH + GAP_MIN * numGaps <= espacioDisponible) {
+        fontSizeGlobal = fs;
+        break;
+      }
+    }
+    fontSizeGlobal = Math.max(fontSizeGlobal, 6);
+  }
+
+  // ── PASO 4: dibujar ──
+  doc.setFontSize(fontSizeGlobal);
+  const lineHFinal = doc.getTextDimensions("A").h;
+
+  // Recalcular gap final con el fontSize definitivo
+  const totalAlturaFinal   = dataFields.reduce((sum, k) => {
+    const val   = (formData[k as keyof FormData] as string) || "";
+    const label = (FIELD_LABELS[k as FieldKey] ?? `${k.toUpperCase()}:`) + " ";
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(fontSizeGlobal);
+    const lw = doc.getTextWidth(label);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(fontSizeGlobal);
+    return sum + lineHFinal * doc.splitTextToSize(val, maxW - lw).length;
+  }, 0);
+  const espacioParaGapsFinal = (cuadroBottom - separadorY - 3) - totalAlturaFinal;
+  const gapFinalAjustado     = Math.min(GAP_MAX, Math.max(GAP_MIN, espacioParaGapsFinal / numGaps));
+
   let cy = separadorY + 3;
 
-  dataFields.forEach((k, idx) => {
+  dataFields.forEach((k) => {
     const val    = (formData[k as keyof FormData] as string) || "";
     const label  = (FIELD_LABELS[k as FieldKey] ?? `${k.toUpperCase()}:`) + " ";
 
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(8.5);
+    doc.setFontSize(fontSizeGlobal);
     const lw     = doc.getTextWidth(label);
     const availW = maxW - lw;
 
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(8.5);
-
-    let lines    = doc.splitTextToSize(val, availW);
-    let fontSize = 8.5;
-
-    // Solo reducir fuente si es el último campo y no cabe
-    const isLast    = idx === dataFields.length - 1;
-    const spaceLeft = cuadroBottom - cy - 2;
-    if (isLast && lineH * lines.length > spaceLeft) {
-      const result = fitTextToWidth(doc, val, availW, 8.5);
-      lines    = result.lines;
-      fontSize = result.fontSize;
-    }
+    doc.setFontSize(fontSizeGlobal);
+    const lines  = doc.splitTextToSize(val, availW);
 
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(8.5);
+    doc.setFontSize(fontSizeGlobal);
     doc.text(label, dataX, cy);
 
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(fontSize);
+    doc.setFontSize(fontSizeGlobal);
     doc.text(lines.length > 0 ? lines : [""], dataX + lw, cy);
 
-    cy += lineH * lines.length + gapFinal;
+    cy += lineHFinal * lines.length + gapFinalAjustado;
   });
 }
 
