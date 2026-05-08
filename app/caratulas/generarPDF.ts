@@ -251,13 +251,21 @@ function drawInteresados(
   formData: FormData,
   xBase: number,
   yLabel: number,
-  maxW: number
+  maxW: number,
+  catCode?: string
 ): number {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8.5);
-  doc.text("NOMBRE DEL INTERESADO (S):", xBase, yLabel);
+  
+  // Para INP1, mostrar "NOMBRE DEL JUZGADO:" en lugar de "NOMBRE DEL INTERESADO (S):"
+  const isINP1 = catCode === "INP1";
+  const labelText = isINP1 ? "NOMBRE DEL JUZGADO:" : "NOMBRE DEL INTERESADO (S):";
+  doc.text(labelText, xBase, yLabel);
 
-  const nombres = [formData.interesado || "", ...(formData.interesados || [])].filter(Boolean);
+  // Para INP1, usar nombreJuzgado; para otros, usar interesados
+  const nombres = isINP1
+    ? [formData.nombreJuzgado || ""].filter(Boolean)
+    : [formData.interesado || "", ...(formData.interesados || [])].filter(Boolean);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(INTERESADO_FONT_SIZE);
@@ -491,7 +499,7 @@ doc.text(subtituloPrincipal, pageWidth / 2, g2mm(G.subtituloY) + Y_OFFSET.titulo
   doc.setLineDashPattern([2, 2], 0);
 
   // ── FILAS DE DATOS ──
-  const allControlFields = new Set([...controlFields, ...CONTROL_FIELDS_EXTRA, ...PERSON_FIELDS, "titulo"]);
+  const allControlFields = new Set([...controlFields, ...CONTROL_FIELDS_EXTRA, ...PERSON_FIELDS, "titulo", "nombreJuzgado"]);
   const dataFields   = cat.active.filter(k => !allControlFields.has(k as FieldKey));
   const maxW         = dataColRight - dataX;
   const cuadroBottom = g2mm(27.642) + BASE;
@@ -503,14 +511,14 @@ doc.text(subtituloPrincipal, pageWidth / 2, g2mm(G.subtituloY) + Y_OFFSET.titulo
   const interesadoX    = g2mm(G.interesadoLab.x) + 2;
   const interesadoMaxW = g2mm(14.891) - g2mm(3.6);
 
-  drawInteresados(doc, formData, interesadoX, g2mm(G.interesadoLab.y) + infBase + Y_OFFSET.interesado, interesadoMaxW);
+  drawInteresados(doc, formData, interesadoX, g2mm(G.interesadoLab.y) + infBase + Y_OFFSET.interesado, interesadoMaxW, cat.code);
 
   // SELLO DE CONFORMIDAD + QR
   doc.setFont("helvetica", "bold");
   doc.setFontSize(7.5);
-  doc.text("SELLO DE CONFORMIDAD:", g2mm(G.conformidad.x) + 2, g2mm(G.conformidad.y) + infBase + Y_OFFSET.conformidad);
+  doc.text("SELLO DE CONFORMIDAD:", g2mm(G.conformidad.x) + 34, g2mm(G.conformidad.y) + infBase + Y_OFFSET.conformidad - 3);
   if (qrDataUrl) {
-    doc.addImage(qrDataUrl, "PNG", g2mm(G.conformidad.x) + 2, g2mm(G.conformidad.y) + infBase + Y_OFFSET.conformidad + 3, 25, 25);
+    doc.addImage(qrDataUrl, "PNG", g2mm(G.conformidad.x) + 0, g2mm(G.conformidad.y) + infBase + Y_OFFSET.conformidad + -5.5, 33, 33);
   }
 
   // SELLO Y FIRMA
@@ -655,7 +663,7 @@ doc.text(subtituloPrincipal, pageWidth / 2, g2mm(G.subtituloY) + Y_OFFSET.titulo
 
   const PERSON_FIELDS_LOCAL: FieldKey[]  = ["interesado", "ingNombre", "rni"];
   const CONTROL_FIELDS_LOCAL: FieldKey[] = ["tienePlanos", "numPlanos", "numCopias"];
-  const allControlFields = new Set([...controlFields, ...CONTROL_FIELDS_LOCAL, ...PERSON_FIELDS_LOCAL, "titulo"]);
+  const allControlFields = new Set([...controlFields, ...CONTROL_FIELDS_LOCAL, ...PERSON_FIELDS_LOCAL, "titulo", "nombreJuzgado"]);
   const dataFields   = cat.active.filter(k => !allControlFields.has(k as FieldKey));
   const maxW         = dataColRight - dataX;
   const cuadroBottom = g2mm(27.642) + BASE;
@@ -666,7 +674,7 @@ doc.text(subtituloPrincipal, pageWidth / 2, g2mm(G.subtituloY) + Y_OFFSET.titulo
   const interesadoX    = g2mm(G.interesadoLab.x) + 2;
   const interesadoMaxW = g2mm(14.891) - g2mm(3.6);
 
-  drawInteresados(doc, formData, interesadoX, g2mm(G.interesadoLab.y) + infBase + Y_OFFSET.interesado, interesadoMaxW);
+  drawInteresados(doc, formData, interesadoX, g2mm(G.interesadoLab.y) + infBase + Y_OFFSET.interesado, interesadoMaxW, cat.code);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(7.5);

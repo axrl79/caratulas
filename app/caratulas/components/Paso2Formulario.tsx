@@ -42,7 +42,7 @@ export default function Paso2Formulario({
 
   const EXCLUDED: FieldKey[] = [
     "titulo", "interesado", "ingNombre", "rni",
-    "tienePlanos", "numPlanos", "numCopias", ...peritajeFields,
+    "tienePlanos", "numPlanos", "numCopias", "nombreJuzgado", ...peritajeFields,
   ];
 
   const shouldShowField = (key: FieldKey) =>
@@ -87,7 +87,7 @@ export default function Paso2Formulario({
   };
 
   const projectFields = FIELDS.filter(f =>
-    !EXCLUDED.includes(f.key) && shouldShowField(f.key)
+    !EXCLUDED.includes(f.key) && f.key !== "nombreJuzgado" && shouldShowField(f.key)
   );
   const responsibleFields = FIELDS.filter(f =>
     personFields.includes(f.key) && shouldShowField(f.key)
