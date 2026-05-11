@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { Categoria, FormData, CATEGORY_LOGOS, ESTRUCTURA_CATEGORIAS } from "../data/diccionarios";
 import { DOCUMENTOS_COMPLEMENTARIOS, DocumentoComplementario } from "../data/documentosComplementarios";
+import { enviarCaratulaCompleta, blobToFile } from "../data/apiIntegration";
 
 interface Paso4DescargaProps {
   C: any;
@@ -8,12 +9,32 @@ interface Paso4DescargaProps {
   cat: Categoria;
   formData: FormData;
   downloadPDF: (format: "letter" | "a4") => void;
+  generatePDFBlob?: (format: "letter" | "a4") => Promise<Blob>;
+  documentQRUrl?: string;
+  documentSHA256?: string;
+  mainCat?: string;
+  filesMemoria: File[];
+  filesPlanos: File[];
+  filesPlanosArq: File[];
   resetForm: () => void;
 }
 
 export default function Paso4Descarga({
-  C, themeMode, cat, formData, downloadPDF, resetForm
+  C, themeMode, cat, formData, downloadPDF, generatePDFBlob,
+  documentQRUrl, documentSHA256, mainCat,
+  filesMemoria, filesPlanos, filesPlanosArq,
+  resetForm
 }: Paso4DescargaProps) {
+  const [isUploading, setIsUploading] = useState(false);
+  const [modalInfo, setModalInfo] = useState<{
+    title: string;
+    message: string;
+    details?: string[];
+  } | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<{
+    type: "success" | "error" | "info" | null;
+    message: string;
+  }>({ type: null, message: "" });
 
   // ── Documentos disponibles para esta categoría ──
   const docsDisponibles = DOCUMENTOS_COMPLEMENTARIOS.filter(
@@ -37,6 +58,118 @@ export default function Paso4Descarga({
     docsDisponibles.forEach((doc, i) => {
       setTimeout(() => descargarArchivo(doc), i * 400);
     });
+  };
+
+  // ── Enviar a base de datos ──
+  const handleEnviarABD = async () => {    // DEBUG
+    console.log("🔍 DEBUG Paso4Descarga:", {
+      documentSHA256: documentSHA256,
+      documentSHA256_length: documentSHA256?.length,
+      documentSHA256_type: typeof documentSHA256,
+      generatePDFBlob: !!generatePDFBlob,
+      documentQRUrl: !!documentQRUrl,
+      mainCat: mainCat,
+    });
+    if (!generatePDFBlob || !documentQRUrl || !documentSHA256 || !mainCat) {
+      setUploadStatus({
+        type: "error",
+        message: "Error: faltan datos necesarios para enviar. Intenta recargar la página.",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadStatus({ type: "info", message: "📤 Generando PDF y enviando..." });
+
+    try {
+      // Generar PDF como Blob
+      const pdfBlob = await generatePDFBlob("letter");
+      const pdfFile = blobToFile(pdfBlob, `${cat.code}_${documentSHA256}.pdf`);
+
+      // DEBUG
+      console.log("📤 Enviando con documentSHA256:", documentSHA256);
+      console.log("📤 Archivos complementarios a enviar:", {
+        memorias: filesMemoria.length,
+        planos: filesPlanos.length,
+        planosArq: filesPlanosArq.length,
+      });
+
+      const allowedMime = new Set([
+        "application/pdf",
+        "image/png",
+        "image/jpeg",
+        "image/webp",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      ]);
+      const maxFileSizeBytes = 20 * 1024 * 1024;
+
+      const allFiles = [...filesMemoria, ...filesPlanos, ...filesPlanosArq];
+      const invalidTypeFiles = allFiles.filter(
+        (file) => file.type && !allowedMime.has(file.type)
+      );
+      const oversizedFiles = allFiles.filter(
+        (file) => file.size > maxFileSizeBytes
+      );
+
+      if (invalidTypeFiles.length > 0 || oversizedFiles.length > 0) {
+        const details: string[] = [];
+        if (invalidTypeFiles.length > 0) {
+          details.push(
+            "Tipo no permitido: " +
+              invalidTypeFiles.map((f) => `${f.name} (${f.type || "tipo desconocido"})`).join(", ")
+          );
+        }
+        if (oversizedFiles.length > 0) {
+          details.push(
+            "Excede 20 MB: " +
+              oversizedFiles
+                .map((f) => `${f.name} (${(f.size / 1024 / 1024).toFixed(2)} MB)`) 
+                .join(", ")
+          );
+        }
+
+        setModalInfo({
+          title: "Archivos no válidos",
+          message: "Algunos archivos no cumplen los requisitos y no se enviarán.",
+          details,
+        });
+      }
+
+      // Enviar todo a las APIs (con SHA256)
+      const result = await enviarCaratulaCompleta(
+        formData,
+        cat,
+        documentSHA256,
+        pdfFile,
+        [...filesMemoria, ...filesPlanos, ...filesPlanosArq]
+      );
+
+      if (result.success) {
+        const displayCode = documentSHA256 || result.data?.cod_hash || "";
+        console.log("✅ Mostrar hash real en UI:", displayCode);
+        setUploadStatus({
+          type: "success",
+          message: `✅ ¡Caratula enviada exitosamente! Código: ${displayCode}`,
+        });
+        setTimeout(() => {
+          setUploadStatus({ type: null, message: "" });
+        }, 4000);
+      } else {
+        setUploadStatus({
+          type: "error",
+          message: `❌ Error: ${result.error}`,
+        });
+      }
+    } catch (error) {
+      console.error("Error al enviar:", error);
+      setUploadStatus({
+        type: "error",
+        message: `❌ Error inesperado: ${error instanceof Error ? error.message : String(error)}`,
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   // ── Logo de categoría ──
@@ -73,8 +206,88 @@ export default function Paso4Descarga({
     display: "flex", alignItems: "center", gap: 10,
   };
 
+  const statusBox: React.CSSProperties = {
+    padding: "16px 20px",
+    borderRadius: 12,
+    border: `1px solid ${
+      uploadStatus.type === "success" ? "#22c55e" :
+      uploadStatus.type === "error" ? "#ef4444" : C.accent
+    }`,
+    background: {
+      "success": "#22c55e20",
+      "error": "#ef444420",
+      "info": `${C.accent}20`,
+    }[uploadStatus.type || "info"],
+    color: {
+      "success": "#16a34a",
+      "error": "#dc2626",
+      "info": C.accent,
+    }[uploadStatus.type || "info"],
+    fontSize: "0.9em",
+    fontWeight: 600,
+    marginBottom: 20,
+    display: uploadStatus.type ? "block" : "none",
+  };
+
   return (
     <div style={card}>
+
+      {/* ── Modal de advertencias ── */}
+      {modalInfo && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+            padding: 20,
+          }}
+          onClick={() => setModalInfo(null)}
+        >
+          <div
+            style={{
+              background: C.cardBg,
+              color: C.textMain,
+              border: `1px solid ${C.border}`,
+              borderRadius: 16,
+              padding: 24,
+              width: "min(560px, 92vw)",
+              boxShadow: C.glow,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ fontSize: "1.1em", fontWeight: 800, marginBottom: 8 }}>
+              {modalInfo.title}
+            </div>
+            <div style={{ color: C.textMuted, marginBottom: 12 }}>
+              {modalInfo.message}
+            </div>
+            {modalInfo.details && modalInfo.details.length > 0 && (
+              <div style={{ fontSize: "0.9em", marginBottom: 16 }}>
+                {modalInfo.details.map((item) => (
+                  <div key={item} style={{ marginBottom: 6 }}>
+                    • {item}
+                  </div>
+                ))}
+              </div>
+            )}
+            <button
+              style={{
+                ...btnPrimary,
+                width: "100%",
+                padding: "12px 16px",
+                fontSize: "0.95em",
+              }}
+              onClick={() => setModalInfo(null)}
+            >
+              Entendido
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── Header ── */}
       <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 8 }}>
@@ -116,6 +329,34 @@ export default function Paso4Descarga({
           ⬇️ Descargar Carátula (Carta)
         </button>
       </div>
+
+      {/* ── Botón enviar al departamento de visados ── */}
+      <div style={{ marginBottom: 40 }}>
+        <div style={secLabel}>🏛️ Enviar al Departamento de Visados</div>
+        <button
+          onClick={handleEnviarABD}
+          disabled={isUploading}
+          style={{
+            ...btnPrimary,
+            width: "100%",
+            padding: "16px 32px",
+            fontSize: "1.05em",
+            opacity: isUploading ? 0.6 : 1,
+            cursor: isUploading ? "not-allowed" : "pointer",
+          }}
+          onMouseOver={e => !isUploading && (e.currentTarget.style.transform = "translateY(-2px)")}
+          onMouseOut={e => (e.currentTarget.style.transform = "translateY(0)")}
+        >
+          {isUploading ? "⏳ Enviando..." : "📤 Enviar al Departamento de Visados"}
+        </button>
+      </div>
+
+      {/* ── Mensaje de estado ── */}
+      {uploadStatus.type && (
+        <div style={statusBox}>
+          {uploadStatus.message}
+        </div>
+      )}
 
       {/* ── Archivos complementarios ── */}
       {archivos.length > 0 && (

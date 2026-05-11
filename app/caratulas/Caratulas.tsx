@@ -149,6 +149,14 @@ export default function Caratulas() {
   if (!cat) return;
   await generarCaratulaPDF(formData, cat, documentQRUrl, format, documentSHA256, mainCat);
 }
+
+  async function generatePDFBlob(format: "letter" | "a4" = "letter"): Promise<Blob> {
+  if (!cat) throw new Error("Categoría no seleccionada");
+  const { generarCaratulaPDFBlob } = await import("./generarPDF");
+  return await generarCaratulaPDFBlob(
+    formData, cat, documentQRUrl, format, documentSHA256, mainCat
+  );
+}
 async function enviarABD(): Promise<void> {
   if (!cat) return;
 
@@ -427,6 +435,13 @@ function handleStepClick(targetStep: number) {
                 C={C} themeMode={themeMode}
                 cat={cat} formData={formData}
                 downloadPDF={downloadPDF}
+                generatePDFBlob={generatePDFBlob}
+                documentQRUrl={documentQRUrl}
+                documentSHA256={documentSHA256}
+                mainCat={mainCat}
+                filesMemoria={filesMemoria}
+                filesPlanos={filesPlanos}
+                filesPlanosArq={filesPlanosArq}
                 resetForm={resetForm}
               />
             )}
