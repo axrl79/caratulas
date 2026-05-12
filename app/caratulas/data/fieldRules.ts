@@ -182,7 +182,7 @@ export const CATEGORY_FIELD_RULES: Record<string, Partial<Record<FieldKey, Field
     numCopias:    { required: true,  decimals: false },
   },
 
-  "PSA3": {
+  "CSA1": {
     coordenadas:      { required: true,  decimals: false },
     municipio:        { required: true,  decimals: false },
     zona:             { required: true,  decimals: false },

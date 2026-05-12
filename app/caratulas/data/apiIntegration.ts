@@ -131,7 +131,7 @@ function generarNombreCategoria(categoria: Categoria): string {
     "CES2": "Certificado Estabilidad - Otros",
     "PSA1": "Proyecto Sanitario - Sistema Agua",
     "PSA2": "Proyecto Sanitario - Sistema Desague",
-    "PSA3": "Proyecto Sanitario - Otros",
+    "CSA1": "Proyecto Sanitario - Otros",
     "CSV1": "Certificado Validación Sanitaria",
     "EGG1": "Estudio Geotécnico - Básico",
     "EGG2": "Estudio Geotécnico - Completo",

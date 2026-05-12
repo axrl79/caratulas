@@ -58,7 +58,7 @@ export const DOCUMENTOS_COMPLEMENTARIOS: DocumentoComplementario[] = [
     nombre: "Cuadro de Cálculo de Número de Artefactos",
     archivo: "docs/C- ARTEFACTOS.docx",
     tipo: "archivo",
-    categorias: ["PSA1", "PSA3"],
+    categorias: ["PSA1", "CSA1"],
   },
   {
     id: "cuadro_longitud_sistema",
@@ -86,7 +86,7 @@ export const DOCUMENTOS_COMPLEMENTARIOS: DocumentoComplementario[] = [
     nombre: "Profesionales Colaboradores del Proyecto",
     archivo: "docs/L- PROFESIONALES.docx",
     tipo: "archivo",
-    categorias: ["PES1","PES2","PES3","PES4","CEE1","CEE2","CEE3","CEE4","CEE5","PSA1","PSA2","PSA3","INT1","INP1"],
+    categorias: ["PES1","PES2","PES3","PES4","CEE1","CEE2","CEE3","CEE4","CEE5","PSA1","PSA2","CSA1","INT1","INP1"],
   },
   {
     id: "esquema_planta",

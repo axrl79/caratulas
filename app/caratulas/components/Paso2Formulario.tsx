@@ -37,7 +37,10 @@ export default function Paso2Formulario({
   const [tienePlanos, setTienePlanos] = useState<boolean>(
     formData.tienePlanos === "true"
   );
-  
+
+  // Estado para mostrar el modal de advertencia
+  const [camposVaciosModal, setCamposVaciosModal] = useState<string[]>([]);
+
   const categoryRules = CATEGORY_FIELD_RULES[cat.code] || {};
 
   const EXCLUDED: FieldKey[] = [
@@ -95,6 +98,75 @@ export default function Paso2Formulario({
   const peritajeActiveFields = FIELDS.filter(f =>
     peritajeFields.includes(f.key) && shouldShowField(f.key)
   );
+
+  // ── Validación antes de pasar al siguiente paso ────────────────────────
+  const handleGoToStep3 = () => {
+    const camposVacios: string[] = [];
+
+    // Título siempre requerido
+    if (!formData.titulo?.trim()) {
+      camposVacios.push("Título del Proyecto");
+    }
+
+    // Campos del proyecto
+    projectFields.forEach(f => {
+      const rule = categoryRules[f.key];
+      if (rule?.required && !formData[f.key as keyof FormData]?.toString().trim()) {
+        camposVacios.push(f.label);
+      }
+    });
+
+    // Campos de peritaje
+    peritajeActiveFields.forEach(f => {
+      const rule = categoryRules[f.key];
+      if (rule?.required && !formData[f.key as keyof FormData]?.toString().trim()) {
+        camposVacios.push(f.label);
+      }
+    });
+
+    // Interesado principal
+    if (cat.active.includes("interesado") && cat.code !== "INP1") {
+      if (!formData.interesado?.trim()) {
+        camposVacios.push("Interesado 1");
+      }
+      interesados.forEach((val, idx) => {
+        if (!val.trim()) camposVacios.push(`Interesado ${idx + 2}`);
+      });
+    }
+
+    // Nombre del juzgado — solo INP1
+    if (cat.code === "INP1" && !formData.nombreJuzgado?.trim()) {
+      camposVacios.push("Nombre del Juzgado");
+    }
+
+    // Responsables
+    responsibleFields
+      .filter(f => f.key !== "interesado")
+      .forEach(f => {
+        const rule = categoryRules[f.key];
+        if (rule?.required && !formData[f.key as keyof FormData]?.toString().trim()) {
+          camposVacios.push(f.label);
+        }
+      });
+
+    // Número de planos si tiene planos activados
+    if (cat.hasPlanos && tienePlanos && !formData.numPlanos?.trim()) {
+      camposVacios.push("Número de Planos");
+    }
+
+    if (camposVacios.length > 0) {
+  setCamposVaciosModal(camposVacios);
+  // Scroll al centro del viewport actual para que el modal aparezca visible
+  setTimeout(() => {
+    document.getElementById("validacion-modal")?.scrollIntoView({
+      behavior: "smooth", block: "center",
+    });
+  }, 50);
+  return;
+}
+
+    goToStep3();
+  };
 
   // ── Estilos ──
   const card: React.CSSProperties = {
@@ -183,6 +255,68 @@ export default function Paso2Formulario({
 
   return (
     <div style={card}>
+
+      {/* ── Modal de campos vacíos ── */}
+      {camposVaciosModal.length > 0 && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 9999,
+          background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          padding: 24,
+        }}>
+          <div id="validacion-modal" style={{
+  background: C.cardBg, border: `1.5px solid #ef4444`,
+  borderRadius: 20, padding: "36px 40px", maxWidth: 480, width: "100%",
+  boxShadow: "0 8px 40px rgba(0,0,0,0.4)",
+}}>
+            {/* Ícono + título */}
+            <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
+              <span style={{ fontSize: "2em" }}>⚠️</span>
+              <div>
+                <div style={{ fontWeight: 800, fontSize: "1.1em", color: "#ef4444" }}>
+                  Campos sin completar
+                </div>
+                <div style={{ fontSize: "0.85em", color: C.textSec, marginTop: 4 }}>
+                  Si no corresponde el dato o no lo tienes, ingresa{" "}
+                  <span style={{ fontWeight: 700, color: C.accent }}>"–"</span>{" "}
+                  para continuar.
+                </div>
+              </div>
+            </div>
+
+            {/* Lista de campos */}
+            <div style={{
+              background: C.inputBg, borderRadius: 12, padding: "16px 20px",
+              marginBottom: 24, maxHeight: 260, overflowY: "auto",
+            }}>
+              {camposVaciosModal.map((campo, i) => (
+                <div key={i} style={{
+                  display: "flex", alignItems: "center", gap: 10,
+                  padding: "8px 0",
+                  borderBottom: i < camposVaciosModal.length - 1 ? `1px solid ${C.border}` : "none",
+                }}>
+                  <span style={{ color: "#ef4444", fontWeight: 700, fontSize: "1em" }}>•</span>
+                  <span style={{ color: C.textMain, fontSize: "0.95em" }}>{campo}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Botón cerrar */}
+            <button
+              onClick={() => setCamposVaciosModal([])}
+              style={{
+                width: "100%", background: C.accent,
+                color: themeMode === "light" ? "#fff" : C.deepGreen,
+                border: "none", borderRadius: 10, padding: "14px",
+                fontWeight: 700, fontSize: "1em", cursor: "pointer",
+              }}
+            >
+              Entendido, voy a completarlos
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div style={{ marginBottom: 36 }}>
         <div style={{ fontSize: "1.8em", color: C.textMain, fontWeight: 800, marginBottom: 10 }}>{cat.label}</div>
@@ -397,7 +531,7 @@ export default function Paso2Formulario({
                 type="text"
                 value={formData.numPlanos || ""}
                 onChange={e => handleBlockedChange("numPlanos", e.target.value)}
-                onFocus={() => setActiveGuideKey("numPlanos")} // ← AGREGADO
+                onFocus={() => setActiveGuideKey("numPlanos")}
                 placeholder="Ej: 5 (solo números)"
                 style={inputStyle()}
                 onFocusCapture={e => { e.currentTarget.style.borderColor = C.accent; }}
@@ -422,10 +556,10 @@ export default function Paso2Formulario({
               type="text"
               value={formData.numCopias || ""}
               onChange={e => handleBlockedChange("numCopias", e.target.value)}
-              onFocus={() => setActiveGuideKey("numCopias")} // ← AGREGADO
+              onFocus={() => setActiveGuideKey("numCopias")}
               placeholder="Ej: 3 (solo números)"
               style={inputStyle()}
-              onFocusCapture={e => { e.currentTarget.style.borderColor = C.accent; }}
+              onFocusCapture={e => { e.currentTarget.style.borderColor = C.border; }}
               onBlurCapture={e => { e.currentTarget.style.borderColor = C.border; }}
             />
           </div>
@@ -435,7 +569,7 @@ export default function Paso2Formulario({
       {/* Botones */}
       <div style={{ display: "flex", justifyContent: "space-between", gap: 16, marginTop: 48 }}>
         <button onClick={goBack} style={btnSecondary}>← Volver</button>
-        <button onClick={goToStep3} style={btnPrimary}>Siguiente →</button>
+        <button onClick={handleGoToStep3} style={btnPrimary}>Siguiente →</button>
       </div>
     </div>
   );

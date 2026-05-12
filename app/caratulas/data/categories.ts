@@ -6,7 +6,7 @@ import { Disciplina, Categoria } from "./types";
 
 export const ESTRUCTURA_CATEGORIAS: Record<string, Disciplina[]> = {
   "Estructural":           ["Proyectos Estructurales", "Certificados de Estabilidad Estructural"],
-  "Sanitario":             ["Proyectos Sanitarios / Certificados de Validación Sanitaria"],
+  "Sanitario":             ["Proyectos Sanitarios" , "Certificados de Validación Sanitaria"],
   "Geológico - Geotécnico":["Estudios Geotécnicos Geológicos"],
   "Eléctrico":             ["Proyectos de Instalación Eléctricos", "Peritajes Eléctricos"],
   "Mecánico":              ["Proyectos Mecánicos"],
@@ -108,7 +108,7 @@ export const CATEGORIAS: Categoria[] = [
   // ══════════════════════════════════════════════════════════════
 
   {
-    disciplina: "Proyectos Sanitarios / Certificados de Validación Sanitaria", code: "PSA1",
+    disciplina: "Proyectos Sanitarios", code: "PSA1",
     label: "Proyecto Hidro Sanitario – Edificación",
     titulo_caratula: "PROYECTO SANITARIO", subtitulo_caratula: "– Edificación",
     hasPlanos: true,
@@ -117,7 +117,7 @@ export const CATEGORIAS: Categoria[] = [
              "interesado","ingNombre","rni","tienePlanos","numPlanos","numCopias"],
   },
   {
-    disciplina: "Proyectos Sanitarios / Certificados de Validación Sanitaria", code: "PSA2",
+    disciplina: "Proyectos Sanitarios", code: "PSA2",
     label: "Proyecto Saneamiento Básico – Urbanización",
     titulo_caratula: "PROYECTO SANITARIO", subtitulo_caratula: "– Urbanización",
     hasPlanos: true,
@@ -125,7 +125,7 @@ export const CATEGORIAS: Categoria[] = [
              "interesado","ingNombre","rni","tienePlanos","numPlanos","numCopias"],
   },
   {
-    disciplina: "Proyectos Sanitarios / Certificados de Validación Sanitaria", code: "PSA3",
+    disciplina: "Certificados de Validación Sanitaria", code: "CSA1",
     label: "Certificado de Validación de Sistemas HidroSanitario – Edificación",
     titulo_caratula: "CERTIFICADO DE VALIDACIÓN SANITARIA", subtitulo_caratula: "– Edificación",
     hasPlanos: true,

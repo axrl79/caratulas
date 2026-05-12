@@ -41,7 +41,8 @@ export type FieldKey =
 export type Disciplina =
   | "Proyectos Estructurales"
   | "Certificados de Estabilidad Estructural"
-  | "Proyectos Sanitarios / Certificados de Validación Sanitaria"
+  | "Proyectos Sanitarios"
+  | "Certificados de Validación Sanitaria"
   | "Estudios Geotécnicos Geológicos"
   | "Proyectos de Instalación Eléctricos"
   | "Peritajes Eléctricos"

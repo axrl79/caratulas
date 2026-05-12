@@ -13,7 +13,9 @@ interface GuideContent {
   description: string;
   example?: string;
   table?: { headers: string[]; rows: string[][] };
+  tableTitle?: string;
   notes?: string[];
+  notesTitle?: string;
   mainCatKey?: string;
   image?: { src: string; alt: string; caption?: string };
   images?: { src: string; alt: string; caption?: string }[];
@@ -68,7 +70,7 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
   // ── 2. DISCIPLINAS SECUNDARIAS ───────────────────────────────────────────
   const DISCIPLINE_GUIDES: Record<string, GuideContent> = {
     "Proyectos Estructurales": { title: "Proyectos Estructurales", description: "Documentos de diseño estructural que contemplan memoria de cálculo, planos estructurales y especificaciones técnicas." },
-    "Certificados de Estabilidad Estructural": { title: "Certificados de Estabilidad Estructural", description: "Documentos emitidos por el ingeniero proyectista certificando que una estructura cumple con las normas de estabilidad y resistencia." },
+    "Certificados de Estabilidad Estructural": { title: "Certificados de Estabilidad Estructural", description: "Documentos emitidos por el ingeniero proyectista certificando que una estructura ya construida cumple con las normas de estabilidad y resistencia." },
     "Proyectos Sanitarios / Certificados de Validación Sanitaria": { title: "Proyectos Sanitarios / Certificados de Validación", description: "Diseño de instalaciones sanitarias y certificados que validan el cumplimiento de normativa de saneamiento básico." },
     "Estudios Geotécnicos Geológicos": { title: "Estudios Geotécnicos Geológicos", description: "Investigación del subsuelo mediante ensayos de campo y laboratorio para determinar la capacidad portante y recomendar el tipo de cimentación." },
     "Proyectos de Instalación Eléctricos": { title: "Proyectos de Instalación Eléctrica", description: "Diseño de redes eléctricas internas y externas para uso doméstico, comercial o industrial conforme al Reglamento Eléctrico Boliviano." },
@@ -89,13 +91,13 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
     // CEE
     "Certificado de Estabilidad Estructural – Edificación":                      { title: "CEE1 – Certificado de Estabilidad: Edificación",            description: "Certifica que una edificación cumple con las normas de estabilidad estructural vigentes." },
     "Certificado de Estabilidad Estructural Sismorresistente – Edificación":     { title: "CEE2 – Certificado Sismorresistente: Edificación",           description: "Certifica el cumplimiento de la normativa sismorresistente boliviana para edificaciones." },
-    "Certificado de Estabilidad Estructural – Puente o Viaducto":               { title: "CEE3 – Certificado de Estabilidad: Puente o Viaducto",       description: "Certificación de estabilidad para puentes existentes o proyectados." },
+    "Certificado de Estabilidad Estructural – Puente o Viaducto":               { title: "CEE3 – Certificado de Estabilidad: Puente o Viaducto",       description: "Certificación de estabilidad para puentes existentes." },
     "Certificado de Estabilidad Estructural – Muro de Contención":              { title: "CEE4 – Certificado de Estabilidad: Muro de Contención",      description: "Certifica la estabilidad de muros de contención verificando factores de seguridad." },
     "Certificado de Estabilidad Estructural Sismorresistente – Muro de Contención": { title: "CEE5 – Certificado Sismorresistente: Muro de Contención", description: "Certificación del comportamiento sísmico de muros de contención." },
     // PSA
     "Proyecto Hidro Sanitario – Edificación":                            { title: "PSA1 – Proyecto Hidro Sanitario: Edificación",          description: "Diseño de instalaciones de agua potable, desagüe y pluviales para edificaciones." },
     "Proyecto Saneamiento Básico – Urbanización":                        { title: "PSA2 – Proyecto Saneamiento Básico: Urbanización",       description: "Diseño de redes de agua potable y alcantarillado para urbanizaciones." },
-    "Certificado de Validación de Sistemas HidroSanitario – Edificación":{ title: "PSA3 – Certificado de Validación Sanitaria: Edificación", description: "Certifica que las instalaciones sanitarias de una edificación cumplen normativa vigente." },
+    "Certificado de Validación de Sistemas HidroSanitario – Edificación":{ title: "CSA1 – Certificado de Validación Sanitaria: Edificación", description: "Certifica que las instalaciones sanitarias de una edificación cumplen normativa vigente." },
     // EGG
     "Estudio Geotécnico y Geológico – Edificación Proyectada": { title: "EGG1 – Estudio Geotécnico: Edificación Proyectada", description: "Investigación del subsuelo para definir la cimentación de una edificación nueva." },
     "Estudio Geotécnico y Geológico – Edificación Existente":  { title: "EGG2 – Estudio Geotécnico: Edificación Existente",  description: "Evaluación de condiciones del suelo bajo una edificación ya construida." },
@@ -199,7 +201,7 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
         example: '"Estudio Geotécnico Geológico – Edificio Nueva Luz"',
       };
     }
-    if (["PSA1", "PSA2", "PSA3"].includes(code)) {
+    if (["PSA1", "PSA2", "CSA1"].includes(code)) {
       return {
         title: "Título del Proyecto (Sanitario)",
         description: 'Debe escribirse el nombre del proyecto o edificación entre comillas.',
@@ -224,6 +226,7 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
           ["C-5",  "Edificaciones especiales",                          "Cualquier altura"],
         ],
       },
+      tableTitle: "Tipología de Edificación",
       notes: ["Fuente: Norma Boliviana de Estudios Geotécnicos."],
     };
   }
@@ -246,6 +249,7 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
         title: "Área de Muro de Contención a Construir (m²) — Muro de Contención",
         description: "Se debe considerar la sumatoria del área de los muros de contención a construir. El área se obtiene multiplicando la altura total del muro (incluyendo el desplante de la cimentación) por su longitud.",
         example: "62.70",
+        tableTitle: "Cálculo de Muro a Construir - Muro de Contención",
         table: tablaComun,
         notes: [
           "Altura y longitud con precisión de dos decimales.",
@@ -257,9 +261,11 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
     // PES1 — Edificación
     return {
       title: "Área de Muro de Contención a Construir (m²) — Edificación",
-      description: "Se debe considerar la sumatoria del área de los muros de contención a construir. El área se obtiene multiplicando la altura total del muro (incluyendo el desplante de la cimentación) por su longitud.",
+      description: "Se debe considerar la sumatoria total del área de los muros de contención en m². Deberá consignarse con una precisión de dos decimales. Se deberá presentar el Cuadro de Cálculo de Áreas de muros de Contención obligatoriamente. El área se obtiene multiplicando la altura total del muro (incluyendo el desplante de la cimentación) por su longitud. En el caso de muros de contención con altura variable, se deberá registrar en la columna 'H' el rango de variación de alturas y en la columna 'A' el área calculada, el área se obtiene multiplicando la altura total del muro (incluyendo el desplante de la cimentación) por su longitud. En el caso de muros de contención con altura variable, se deberá registrar en la columna 'H' el rango de variación de alturas y en la columna 'A' el área calculada.",
       example: "62.70",
+      tableTitle: "Cuadro de Cálculo de áreas de muros de contención",
       table: tablaComun,
+      notesTitle: "Notas Importantes",
       notes: [
         "Altura y longitud con precisión de dos decimales.",
         "Se debe colocar un esquema en planta de la posición de los muros resaltados.",
@@ -286,6 +292,7 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
         title: "Área de Muro de Contención (m²) — Muro de Contención",
         description: "Se debe considerar la sumatoria del área de los muros de contención en metros cuadrados. El área se obtiene multiplicando la altura total del muro (incluyendo el desplante de la cimentación) por su longitud.",
         example: "62.70",
+        tableTitle: "Cálculo de Muro - Muro de Contención (Certificado)",
         table: tablaComun,
         notes: [
           "Altura y longitud con precisión de dos decimales.",
@@ -299,6 +306,7 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
       title: "Área de Muro de Contención (m²) — Edificación",
       description: "Se debe considerar la sumatoria del área de los muros de contención en metros cuadrados. El área se obtiene multiplicando la altura total del muro (incluyendo el desplante de la cimentación) por su longitud.",
       example: "62.70",
+      tableTitle: "Cuadro de Cálculo de Áreas de muros de Contención",
       table: tablaComun,
       notes: [
         "Altura y longitud con precisión de dos decimales.",
@@ -318,7 +326,7 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
       title: esCertificado
         ? "Área de Muro de Contención de Hormigón Armado (m²) — Certificado"
         : "Área de Muro de Contención de Hormigón Armado (m²) — Proyecto",
-      description: "Área del muro construido con hormigón armado (con acero de refuerzo). Se obtiene de la sumatoria de los tramos de muro HºAº del cuadro de cálculo.",
+      description: "Área del muro construido con hormigón armado (con acero de refuerzo). Se consideran de hormigón armado si la gran mayoría de su estructura de superficie es de hormigón armado. Se obtiene de la sumatoria de los tramos de muro HºAº del cuadro de cálculo.",
       example: "45.00",
       notes: [
         "HºAº = Hormigón Armado (con acero de refuerzo).",
@@ -337,7 +345,7 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
       title: esCertificado
         ? "Área de Muro de Contención de Hormigón Ciclópeo (m²) — Certificado"
         : "Área de Muro de Contención de Hormigón Ciclópeo (m²) — Proyecto",
-      description: "Área del muro construido con hormigón ciclópeo (con piedra grande embebida, sin acero de refuerzo). Se obtiene de la sumatoria de los tramos de muro HºCº del cuadro de cálculo.",
+      description: "Área del muro construido con hormigón ciclópeo (con piedra grande embebida, sin acero de refuerzo). Se consideran de hormigón ciclópeo si la gran mayoría de su estructura de superficie es de hormigón ciclópeo. Se obtiene de la sumatoria de los tramos de muro HºCº del cuadro de cálculo.",
       example: "40.00",
       notes: [
         "HºCº = Hormigón Ciclópeo (sin acero, con piedra embebida).",
@@ -360,6 +368,7 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
         alt: "Diagrama de superficie del tablero del puente a construir",
         caption: "La superficie incluye bermas, carriles, aceras y demás elementos del ancho total.",
       },
+      tableTitle: "Cuadro de Cálculo de Superficie de áreas de estribos",
       table: {
         headers: ["COMPONENTE", "DESCRIPCIÓN", "VALOR EJEMPLO"],
         rows: [
@@ -383,6 +392,7 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
       title: "Superficie del Tablero (m²) — Certificado Puente",
       description: "Superficie total del tablero del puente existente, incluyendo el ancho completo (bermas, carriles, aceras) por la luz total del puente.",
       example: "538.56 m²  →  Ancho total (15.3 m) × Luz del puente (35.2 m) = 538.56 m²",
+      tableTitle: "Cálculo de Superficie de Tablero Existente",
       table: {
         headers: ["COMPONENTE", "DESCRIPCIÓN", "VALOR EJEMPLO"],
         rows: [
@@ -403,8 +413,9 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
   if (key === "areaMuroEst") {
     return {
       title: "Área de Estribos a Construir (m²) — Proyecto Puente",
-      description: "Se debe considerar la sumatoria del área de los estribos a construir. El área se obtiene multiplicando la altura total del estribo (incluyendo el desplante de la cimentación) por su longitud.",
+      description: "Se debe considerar la sumatoria del área de los estribos a construir. El área se obtiene multiplicando la altura total del estribo (incluyendo el desplante de la cimentación) por su longitud. Se debe presentar obligatoriamente el Cuadro de Cálculo de Áreas de Estribos.",
       example: "62.70",
+      tableTitle: "Cuadro de Cálculo de Áreas de Estribos",
       table: {
         headers: ["N°", "H (m)", "L (m)", "TIPO", "POSICIÓN", "A (m²)"],
         rows: [
@@ -428,6 +439,7 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
       title: "Área de Estribos (m²) — Certificado Puente",
       description: "Se debe considerar la sumatoria del área de los estribos existentes del puente objeto de certificación.",
       example: "62.70",
+      tableTitle: "Cálculo de Estribos Existentes",
       table: {
         headers: ["N°", "H (m)", "L (m)", "TIPO", "POSICIÓN", "A (m²)"],
         rows: [
@@ -452,18 +464,21 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
       title: "Memorias de Cálculo",
       description: "Documentos técnicos que respaldan los cálculos del proyecto. Deben incluir hipótesis de carga, resultados numéricos y conclusiones firmadas.",
       example: "Memoria_Calculo_Estructural.pdf",
+      notesTitle: "Requisitos de Archivo",
       notes: ["Formato recomendado: PDF.", "Tamaño máximo: 50 MB.", "Puedes subir múltiples archivos."],
     },
     "planos": {
       title: "Planos de Ingeniería",
       description: "Planos técnicos del proyecto (estructurales, sanitarios, eléctricos u otros). Deben estar firmados y sellados por el proyectista.",
       example: "Plano_Estructural_PB.pdf / .dwg",
+      notesTitle: "Formatos y Requisitos de Planos",
       notes: ["Formatos aceptados: PDF, DWG, DXF.", "Cada plano debe tener cuadro de rotulación completo."],
     },
     "planosArq": {
       title: "Planos Arquitectónicos",
       description: "Planos de arquitectura: distribución, cortes, fachadas y detalles constructivos. Necesarios para verificar concordancia con la especialidad.",
       example: "Plano_Arquitectonico_PB.pdf",
+      notesTitle: "Formatos y Requisitos de Planos Arquitectónicos",
       notes: ["Formatos aceptados: PDF, DWG.", "Incluir planta de conjunto si aplica."],
     },
 
@@ -472,12 +487,16 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
       title: "Coordenadas (Lat. – Long.)",
       description: "Se registrarán las coordenadas geodésicas en el sistema de referencia mundial WGS-84. Para proyectos con predio definido, se tomará como punto de referencia el centroide (centro geométrico) del mismo. Las coordenadas se expresarán en grados decimales con una precisión mínima de seis (6) decimales, utilizando el punto (.) como separador decimal. El formato de entrada será: Latitud, seguido de Longitud, separados estrictamente por punto y coma (;).",
       example: "-16.503487; -68.130420",
+      notesTitle: "Especificaciones de Coordenadas",
+      notes: [], // Sin notas por defecto para coordenadas
     },
     "municipio": {
       title: "Municipio",
       description: "Se deberá colocar el nombre oficial del Municipio donde se emplaza el proyecto, asegurando la correspondencia con la Provincia respectiva de acuerdo a la División Político-Administrativa del Estado Vigente.",
       example: "La Paz, El Alto, Viacha, Copacabana",
+      notesTitle: "Aclaración sobre Municipios",
       notes: ["En caso de proyectos colindantes entre dos o más municipios, se deberá especificar el municipio donde se registre el proyecto."],
+      tableTitle: "Municipios por Provincia",
       table: {
         headers: ["PROVINCIA", "MUNICIPIOS"],
         rows: [
@@ -508,11 +527,13 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
       title: "Zona",
       description: "Se deberá colocar la ubicación detallada del predio según corresponda al área urbana o rural.",
       example: "Distrito 3 / Sopocachi Alto",
+      notesTitle: "Criterios de Nomenclatura",
       notes: [
         'Si no es posible especificar, colocar "No Corresponde".',
         "Áreas Urbanas: Indicar el número del Distrito Municipal y el nombre oficial de la Zona o Barrio, de acuerdo con el Certificado de Catastro o el Registro de Propiedad (Derechos Reales).",
         "Áreas Rurales o Dispersas: Indicar el nombre de la Comunidad, Localidad o Sector, además de la denominación del predio o propiedad si esta figurase en el Título Ejecutorial.",
       ],
+      tableTitle: "Formato de Zona",
       table: {
         headers: ["TIPO DE ÁREA", "FORMATO", "EJEMPLO"],
         rows: [
@@ -526,11 +547,13 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
       title: "Calle",
       description: "Se deberá registrar la vía principal de acceso al predio según el tipo de área donde se ubica.",
       example: "Av. Panorámica esq. Calle Puerto Rico / S.N.",
+      notesTitle: "Criterios de Nomenclatura de Vías",
       notes: [
         "Áreas Consolidadas: Indicar nombre de la Calle, Avenida o Pasaje y el número de inmueble oficial. Si no cuenta con número, colocar \"S.N.\" (Sin Número).",
         "Áreas en Expansión/Rurales: Indicar el nombre de la vía proyectada o la carretera/camino de acceso más cercano.",
         "Predios en Esquina: Es obligatorio consignar ambas vías.",
       ],
+      tableTitle: "Formato de Calle",
       table: {
         headers: ["CASO", "FORMATO", "EJEMPLO"],
         rows: [
@@ -557,6 +580,7 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
         alt: "Diagrama de conteo de niveles en edificación",
         caption: "Criterio de conteo: se incluyen sótanos, planta baja, plantas tipo y terraza accesible. No se cuenta el nivel de fundación.",
       },
+      tableTitle: "Conteo de Niveles",
       table: {
         headers: ["NIVEL", "¿SE CUENTA?", "EJEMPLO"],
         rows: [
@@ -569,6 +593,7 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
           ["Cubierta no habitable",     "❌ No", "Techo inclinado"],
         ],
       },
+      notesTitle: "Notas Importantes",
       notes: [
         "Formato: [Número Total] niveles ([Desglose detallado por uso]).",
         "La Planta Baja siempre cuenta como un nivel.",
@@ -597,7 +622,7 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
     },
     "superfProspeccion": {
       title: "Superficie de Prospección (ha)",
-      description: "Área total del terreno prospectado en el estudio geológico, expresada en hectáreas.",
+      description: "Área total del terreno prospectado en el estudio geológico, expresada en m².",
       example: "1.250",
       notes: ["Expresar en hectáreas con tres decimales."],
     },
@@ -606,11 +631,12 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
       description: "Debe colocarse la superficie a reforzar según criterios de áreas de aporte. Se debe completar el Cuadro de Cálculo de Superficies de Elementos Estructurales a Reforzar detallando cada elemento por nivel.",
       example: "396 m²",
       images: [
-        { src: "/docs/img/imgarecol.jpg", alt: "Criterio de área de aporte para columnas",    caption: "Columnas: Para columnas se debe tomar en cuenta el área de aporte de todos los niveles." },
+        { src: "/docs/img/imgarecol.jpg", alt: "Criterio de área de aporte para columnas",    caption: "Columnas: Para columnas se debe tomar en cuenta el área de aporte de todos los niveles."},
         { src: "/docs/img/imgarevig.jpg", alt: "Criterio de área de aporte para vigas",       caption: "Vigas: Para vigas se debe identificar si la losa de aporte está dispuesta en una o dos direcciones, y se sigue el criterio de líneas de rotura de losas." },
         { src: "/docs/img/imgarelos.jpg", alt: "Criterio de área para losas y escaleras",     caption: "Losas/Escaleras: Considerar el área total delimitada por los apoyos. Si las vigas de apoyo también son reforzadas, el área de losa se mantiene independiente — contabilizar ambas áreas por separado." },
         { src: "/docs/img/imgarefun.jpg", alt: "Criterio de área para fundaciones",           caption: "Fundaciones: Colocar entre paréntesis las columnas que descargan a la fundación separadas por '/'. Ej: Z1(C1A/C1B)." },
       ],
+      tableTitle: "Cuadro deCálculo de Superficies de elementos estructurales a Reforzar",
       table: {
         headers: ["N°", "NOMBRE", "MATERIAL", "TIPO ELEMENTO", "NIVELES", "A (m²)"],
         rows: [
@@ -640,6 +666,7 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
         alt: "Diagrama de criterio de medida de altura de muro de contención",
         caption: "H se mide desde el punto más bajo de la fundación (sin dentellón) hasta el coronamiento superior.",
       },
+      tableTitle: "Criterio de Altura de Muro",
       table: {
         headers: ["CASO", "CRITERIO DE MEDIDA", "EJEMPLO"],
         rows: [
@@ -652,11 +679,13 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
         "No incluir el dentellón ni las llaves de corte en la medida.",
         "En caso de muro con altura variable, registrar la altura máxima.",
       ],
+      notesTitle: "Especificaciones de Medida",
     },
     "areaMuroRef": {
       title: "Área de Muro de Contención a Reforzar (m²)",
       description: "Se debe considerar la sumatoria del área de los muros de contención que serán intervenidos, considerando la totalidad de la sección donde se realizará la intervención. El área se obtiene multiplicando la altura total del muro (incluyendo el desplante de la cimentación) por su longitud.",
       example: "62.70",
+      tableTitle: "Cuadro de Cálculo de Áreas de Muro de Contención",
       table: {
         headers: ["N°", "H (m)", "L (m)", "TIPO", "¿PERTENECE AL BLOQUE ESTRUCTURAL?", "A (m²)"],
         rows: [
@@ -676,13 +705,14 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
     // ── Puentes ──
     "luzPuente": {
       title: "Luz Total del Puente (m)",
-      description: "Se consignará la dimensión longitudinal del puente medida sobre el Eje de Simetría o Eje de Proyecto en Planta. La Longitud Total es la suma de todas las luces parciales, medida desde la cara interna del estribo inicial hasta la cara interna del estribo final.",
+      description: "Se consignará la dimensión longitudinal del puente medida sobre el Eje de Simetría o Eje de Proyecto en Planta. La Longitud Total es la suma de todas las luces parciales.",
       example: "120.45",
       image: {
         src: "/docs/img/imgluzpue.jpg",
         alt: "Diagrama de medición de luz total del puente",
         caption: "La luz se mide desde la cara interna del estribo inicial hasta la cara interna del estribo final sobre el eje de proyecto.",
       },
+      tableTitle: "Criterio de Luz de Puente",
       table: {
         headers: ["CASO", "CRITERIO DE MEDIDA", "EJEMPLO"],
         rows: [
@@ -696,6 +726,7 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
         "En puentes curvos NO usar la distancia lineal entre apoyos.",
         "Formato de llenado: Longitud Total: [valor] m",
       ],
+      notesTitle: "Criterios de Medición de Puentes",
     },
 
     // ── Volúmenes ──
@@ -703,12 +734,14 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
       title: "Volumen de Movimiento de Tierras (m³)",
       description: "Volumen total de tierra a excavar, rellenar o mover durante la ejecución del proyecto.",
       example: "320.50",
+      notesTitle: "Especificaciones Técnicas",
       notes: ["Expresar en metros cúbicos con dos decimales."],
     },
     "volDemolicion": {
       title: "Volumen de Demolición (m³)",
       description: "Volumen total de material a demoler en la estructura existente.",
       example: "75.00",
+      notesTitle: "Especificaciones Técnicas",
       notes: ["Expresar en metros cúbicos con dos decimales."],
     },
 
@@ -717,6 +750,7 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
       title: "Número de Artefactos",
       description: "Se deberá consignar el número total de artefactos sanitarios destinados al consumo de agua y/o a la evacuación de desechos. Se debe completar el Cuadro de Cálculo de Número de Artefactos, registrando la cantidad por cada nivel de la edificación.",
       example: "63",
+      tableTitle: "Cuadro de Cálculo de Número de Artefactos",
       table: {
         headers: ["NIVEL", "BEBEDERO", "DUCHA", "GRIFO/LLAVE RIEGO", "INODORO", "MÁQ. LAVAR", "LAVAMANOS", "LAVANDERÍA", "LAVAPLATOS", "TINA", "URINARIO", "OTRO"],
         rows: [
@@ -734,11 +768,13 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
         "El total debe estar relacionado con el número de Unidades de Gasto (UG) del proyecto.",
         "Descargar y completar el documento complementario: Cuadro de Cálculo de Número de Artefactos.",
       ],
+      notesTitle: "Validación de Artefactos Sanitarios",
     },
     "longSistema": {
       title: "Longitud Total del Sistema (km)",
       description: "Se registrará la longitud acumulada de la red expresada en kilómetros (km), con una precisión de tres decimales. Esta cifra debe ser el resultado de la sumatoria de los tramos detallados en el Cuadro de Longitudes del Sistema. La longitud se computará conforme a la proyección horizontal del sistema.",
       example: "4.951",
+      tableTitle: "Longitud de Sistema por Jerarquía",
       table: {
         headers: ["JERARQUÍA DE RED", "IDENTIFICADOR / SECTOR", "DIÁMETRO O DIMENSIONES", "MATERIAL", "LONGITUD (km)"],
         rows: [
@@ -760,6 +796,7 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
         "Red Secundaria: tuberías, canales o elementos de recolección o distribución que aportan a la red principal.",
         "Descargar y completar el documento complementario: Cuadro de Longitudes del Sistema.",
       ],
+      notesTitle: "Recomendaciones de Red Sanitaria",
     },
 
     // ── Eléctrico ──
@@ -767,12 +804,14 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
       title: "Potencia Instalada (kW)",
       description: "Suma de todas las potencias de los equipos eléctricos instalados en el sistema.",
       example: "45.5",
+      notesTitle: "Unidades de Medida Eléctrica",
       notes: ["Expresar en kilowatts con un decimal mínimo."],
     },
     "potenciaDem": {
       title: "Potencia Demandada (kVA)",
       description: "Potencia máxima que demandará el sistema en condiciones normales de operación.",
       example: "38.2",
+      notesTitle: "Unidades de Medida Eléctrica",
       notes: ["Expresar en kilovoltamperios con un decimal mínimo."],
     },
     "tensionAlim": {
@@ -787,12 +826,14 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
       title: "Peso Total ±5% (kg)",
       description: "Peso total del equipo o sistema mecánico con tolerancia del ±5%.",
       example: "1250.00",
+      notesTitle: "Especificaciones de Tolerancia",
       notes: ["Expresar en kilogramos con dos decimales.", "La tolerancia del ±5% debe estar justificada en la memoria de cálculo."],
     },
     "dimensiones": {
       title: "Dimensiones Principales L×A×H (m)",
       description: "Dimensiones principales del equipo: largo, ancho y alto en metros.",
       example: "2.5 × 1.8 × 3.2",
+      notesTitle: "Formato de Dimensiones",
       notes: ["Formato: Largo × Ancho × Alto, en metros con un decimal mínimo."],
     },
     "fuenteEnergia": {
@@ -811,11 +852,17 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
       title: "Norma de Diseño",
       description: "Normativa técnica bajo la cual fue elaborado el proyecto, priorizando la norma nacional boliviana. A falta de normativa nacional, se puede utilizar normativa extranjera. Las normas se separan por comas.",
       example: "CBH 87, NB 1225001, ACI 318, AASHTO LRFD",
+      tableTitle: "Normativa de Diseño",
       table: {
         headers: ["TIPO", "NORMA", "DESCRIPCIÓN"],
         rows: [
           ["Nacional",  "CBH 87",      "Código Boliviano del Hormigón"],
           ["Nacional",  "NB 1225001",  "Norma Boliviana Sismorresistente"],
+          ["Nacional",  "RENISDA 2011",  "Reglamento Nacional de Instalaciones Sanitarias Domiciliarias"],
+          ["Nacional",  "NB 688",  "Diseño de Sistemas de Alcantarillado Sanitario y Pluvial"],
+          ["Nacional",  "NB 689",  "Diseño de Sistemas de Agua Potable y Aducciones"],
+          ["Nacional",  "NB 777",  "Diseño y Construcción de Instalaciones Eléctricas de Baja Tensión"],
+          ["Nacional",  "NB 58002",  "Protección Contra Incendios - Selección e Instalación de Extintores"],
           ["Extranjera","ACI 318-14",  "Código para Estructuras de Hormigón (EE.UU.)"],
           ["Extranjera","AASHTO LRFD", "Diseño por Factores de Carga y Resistencia"],
           ["Extranjera","ASCE 7",      "Cargas Mínimas para Edificaciones (EE.UU.)"],
@@ -825,11 +872,13 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
         "Priorizar siempre la normativa nacional boliviana.",
         "Las normas se separan por comas.",
       ],
+      notesTitle: "Recomendaciones de Normativa",
     },
     "normaVerif": {
       title: "Norma de Verificación",
       description: "Debe colocarse la norma con la cual se verifican los diferentes elementos estructurales, priorizando la norma nacional. A falta de normativa nacional, se puede utilizar normativa extranjera. Las normas se separan por comas.",
       example: "CBH 87, NB 1225001, ACI 318-14, LRFD",
+      tableTitle: "Normativa de Verificación",
       table: {
         headers: ["TIPO", "NORMA", "DESCRIPCIÓN"],
         rows: [
@@ -848,11 +897,13 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
         "A falta de normativa nacional para cargas, se puede utilizar normativa extranjera.",
         "Las normas se separan por comas. Ej: CBH 87, NB 1225001, ACI 318-14.",
       ],
+      notesTitle: "Recomendaciones de Normativa",
     },
     "normaAplicacion": {
       title: "Norma Técnica de Aplicación",
       description: "Normativa técnica de aplicación específica para el estudio, plan de contingencia o informe elaborado. Priorizar la norma nacional boliviana.",
       example: "NB 1225002 (Geotécnica), NBE FL-90",
+      notesTitle: "Recomendaciones por Tipo de Documento",
       notes: [
         "Para Estudios Geotécnicos: NB 1225002.",
         "Para Planes de Contingencia: normas de gestión de riesgos vigentes.",
@@ -892,6 +943,8 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
         "Formato: número de 10 a 13 dígitos según corresponda.",
         "No se aceptan guiones, espacios ni caracteres adicionales.",
       ],
+      notesTitle: "Validación de Número Judicial",
+      tableTitle: "Formato de NUREJ",
       table: {
         headers: ["CASO", "FORMATO", "EJEMPLO"],
         rows: [
@@ -928,10 +981,9 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
 },
 "numCopias": {
   title: "Número de Copias",
-  description: "Indica la cantidad de copias físicas del proyecto que serán presentadas ante la SIB para su visado. Cada copia debe estar completa, firmada y sellada por el ingeniero proyectista.",
+  description: "Indica la cantidad de copias físicas del proyecto que serán presentadas ante la SIB LA PAZ para su visado. Cada copia debe estar completa, firmada y sellada por el ingeniero proyectista.",
   example: "3",
   notes: [
-    "El número mínimo de copias requerido es 3.",
     "Solo se aceptan números enteros, sin decimales.",
     "Cada copia debe incluir memoria de cálculo, planos y carátula.",
   ],
@@ -1374,7 +1426,7 @@ export default function FieldGuide({
                       <div key={i}>
                         <img src={img.src} alt={img.alt} style={{ width: "100%", borderRadius: 12, border: `1px solid ${theme.border}`, objectFit: "contain", display: "block" }} />
                         {img.caption && (
-                          <div style={{ fontSize: 11, color: theme.textMuted, textAlign: "center", marginTop: 8, fontStyle: "italic" }}>
+                          <div style={{ fontSize: 14, color: theme.textMuted, textAlign: "center", marginTop: 8, fontStyle: "italic" }}>
                             {img.caption}
                           </div>
                         )}
@@ -1394,7 +1446,7 @@ export default function FieldGuide({
                 {/* Tabla */}
                 {guide?.table && (
                   <div style={{ marginBottom: 20 }}>
-                    <div style={{ fontSize: 11, color: theme.accent, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 12 }}>📊 Tabla de Referencia</div>
+                    <div style={{ fontSize: 11, color: theme.accent, fontWeight: 800, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 12 }}>📊 {guide.tableTitle || "Tabla de Referencia"}</div>
                     <div style={{ overflowX: "auto", borderRadius: 10, border: `1px solid ${theme.border}` }}>
                       <table className="gt">
                         <thead><tr>{guide.table.headers.map((h, i) => <th key={i}>{h}</th>)}</tr></thead>
@@ -1407,7 +1459,7 @@ export default function FieldGuide({
                 {/* Notas */}
                 {guide?.notes && guide.notes.length > 0 && (
                   <div style={{ background: isDark ? "rgba(245,158,11,0.1)" : "#fffbeb", border: `1px solid ${isDark ? "rgba(245,158,11,0.3)" : "#fcd34d"}`, borderRadius: 14, padding: "20px" }}>
-                    <div style={{ fontSize: 11, color: "#d97706", fontWeight: 800, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 12 }}>⚠️ Notas de Normativa</div>
+                    <div style={{ fontSize: 11, color: "#d97706", fontWeight: 800, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 12 }}>⚠️ {guide.notesTitle || "Notas de Normativa"}</div>
                     {guide.notes.map((note, i) => (
                       <p key={i} style={{ fontSize: 13, color: isDark ? "#fcd34d" : "#92400e", margin: "0 0 8px 0", lineHeight: 1.6, fontWeight: 500 }}>• {note}</p>
                     ))}

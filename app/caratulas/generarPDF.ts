@@ -22,9 +22,10 @@ export const CARATULA_ASSETS = {
 // Offsets individuales por especialidad para el logo izquierdo.
 // Positivo en x → mueve a la derecha. Positivo en y → mueve hacia abajo.
 // Solo afecta a las especialidades listadas; el resto queda en { x:0, y:0 }.
-type LogoOffset = { x: number; y: number };
+type LogoOffset = { x: number; y: number; scale?: number };
 const LOGO_OFFSET: Record<string, LogoOffset> = {
-  "Estructural": { x: 0.7, y: 0.5 },  // ← ajusta hasta que quede alineado
+  "Estructural": { x: 0.7, y: 0.5 },
+  "Sanitario":   { x: 0,   y: 1,   scale: 0.8 }, // ← 0.6 = 60% del tamaño original
 };
 
 const PERSON_FIELDS: FieldKey[] = ["interesado", "ingNombre", "rni"];
@@ -100,11 +101,11 @@ const FIELD_LABELS: Partial<Record<FieldKey, string>> = {
   areaMuroRef:        "ÁREA DE MURO DE CONTENCIÓN A REFORZAR (m²):",
   areaMuroHA:         "ÁREA DE MURO DE HORMIGÓN ARMADO (m²):",
   areaMuroHC:         "ÁREA DE MURO DE HORMIGÓN CICLÓPEO (m²):",
-  areaMuroEst:        "ÁREA DE MURO DE ESTRIBOS (m²):",
+  areaMuroEst:        "ÁREA DE ESTRIBOS (m²):",
   areaEstribos:       "ÁREA DE ESTRIBOS (m²):",
-  areaMuro:           "ÁREA DE MURO (m²):",
+  areaMuro:           "ÁREA DE MURO DE CONTENCIÓN (m²):",
   luzPuente:          "LUZ DEL PUENTE (m):",
-  altMuro:            "ALTURA MÁXIMA ÚTIL DE MURO (m):",
+  altMuro:            "ALTURA MÁXIMA TOTAL DE MURO (m):",
   volMovTierras:      "VOLUMEN DE MOVIMIENTO DE TIERRAS (m³):",
   volDemolicion:      "VOLUMEN DE DEMOLICIÓN (m³):",
   numArtefactos:      "NÚMERO DE ARTEFACTOS SANITARIOS:",
@@ -181,12 +182,13 @@ async function placeCaratulaImages(
   }
   if (izq) {
     const off: LogoOffset = LOGO_OFFSET[mainCat ?? ""] ?? { x: 0, y: 0 };
+    const scale = off.scale ?? 1;
     await addImageFitted(
       doc, izq,
       g2mm(IMG_LAYOUT.narrowLeft.gx) + g2mm(off.x),
       g2mm(IMG_LAYOUT.narrowLeft.gy) + topOffset + g2mm(off.y),
-      IMG_LAYOUT.narrowLeft.maxWmm,
-      IMG_LAYOUT.narrowLeft.maxHmm
+      IMG_LAYOUT.narrowLeft.maxWmm * scale,
+      IMG_LAYOUT.narrowLeft.maxHmm * scale
     );
   }
 }
