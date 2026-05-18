@@ -6,10 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-
-// Almacenamiento temporal en memoria (solo para desarrollo)
-let registrosDB: Record<number, any> = {};
-let registroCounter = 1;
+import { mockDb } from "../../utils/mockDb";
 
 /**
  * POST /api/mock/caratulas
@@ -45,35 +42,26 @@ export async function POST(request: NextRequest) {
       }
 
       case "crear-registro": {
-        // Simular creación de registro
-        const id = registroCounter++;
-        // Usar SHA256 o cod_hash del payload como cod_hash
-        const codHash = payload.cod_hash || payload.sha256 || `VIS-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+        // Simular creación de registro utilizando la base de datos compartida
+        const newRegistro = mockDb.crearRegistro(payload);
         
         // DEBUG
         console.log("[Mock API] DEBUG crear-registro:", {
           payload_cod_hash: payload.cod_hash,
           payload_sha256: payload.sha256,
-          codHash_generado: codHash,
+          codHash_generado: newRegistro.cod_hash,
           usandoSHA256: !!payload.sha256,
           usandoCOD_HASH: !!payload.cod_hash,
         });
-        
-        registrosDB[id] = {
-          id,
-          cod_hash: codHash,
-          ...payload,
-          createdAt: new Date().toISOString(),
-        };
 
-        console.log(`[Mock API] Registro creado: ID=${id}, Hash=${codHash}`);
+        console.log(`[Mock API] Registro creado: ID=${newRegistro.id}, Hash=${newRegistro.cod_hash}`);
 
         return NextResponse.json(
           {
             success: true,
             data: {
-              id,
-              cod_hash: codHash,
+              id: newRegistro.id,
+              cod_hash: newRegistro.cod_hash,
             },
           },
           { status: 201 }
@@ -81,20 +69,22 @@ export async function POST(request: NextRequest) {
       }
 
       case "subir-archivos": {
-        // Simular subida de archivos
-        const registroId = payload.registro_id;
-        if (!registrosDB[registroId]) {
+        // Simular subida de archivos utilizando la base de datos compartida
+        const registroId = Number(payload.registro_id);
+        if (isNaN(registroId) || !mockDb.registroExists(registroId)) {
           return NextResponse.json(
             { success: false, error: "Registro no encontrado" },
             { status: 404 }
           );
         }
 
-        registrosDB[registroId].files = payload.files?.map((f: any) => ({
+        const filesArray = payload.files?.map((f: any) => ({
           name: f.name,
-          type: f.type,
-          size: f.size,
+          type: f.type || "application/octet-stream",
+          size: f.size || 0,
         })) || [];
+
+        mockDb.addFilesToRegistro(registroId, filesArray);
 
         console.log(`[Mock API] Archivos subidos a registro ${registroId}`);
 
@@ -103,7 +93,7 @@ export async function POST(request: NextRequest) {
             success: true,
             data: {
               registro_id: registroId,
-              files_count: payload.files?.length || 0,
+              files_count: filesArray.length,
             },
           },
           { status: 201 }
@@ -133,10 +123,11 @@ export async function POST(request: NextRequest) {
  * Obtener registros guardados (para debugging)
  */
 export async function GET() {
+  const dbContents = mockDb.getRegistros();
   return NextResponse.json(
     {
-      registros: registrosDB,
-      count: Object.keys(registrosDB).length,
+      registros: dbContents,
+      count: Object.keys(dbContents).length,
     },
     { status: 200 }
   );

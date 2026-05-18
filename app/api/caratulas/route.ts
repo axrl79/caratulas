@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 
-const REMOTE_API = "https://convenios-lake.vercel.app";
+const REMOTE_API = process.env.NEXT_PUBLIC_API_URL || "https://convenios-lake.vercel.app";
 
 /**
  * POST /api/caratulas
@@ -96,15 +96,46 @@ export async function POST(request: NextRequest) {
     console.log(`[Proxy] ${action} → ${endpoint}`);
 
     if (action === "crear-registro") {
-      console.log("[Proxy] crear-registro salida al remoto:", {
+      console.log("[Proxy] crear-registro salida al remoto/local:", {
         endpoint,
         headers,
         payload: body instanceof FormData ? "[FormData]" : JSON.parse(String(body)),
       });
     }
 
-    // Hacer request al servidor remoto
-    const response = await fetch(`${REMOTE_API}${endpoint}`, {
+    // Determinar la URL base (remota o local mock)
+    // Por defecto es MOCK si no está en false para facilitar desarrollo sin tokens remotos
+    const isMockMode = process.env.NEXT_PUBLIC_USE_MOCK_API !== "false";
+    const requestUrl = new URL(request.url);
+    const host = request.headers.get("host") || "localhost:3000";
+    const protocol = host.includes("localhost") || host.includes("127.0.0.1") ? "http:" : "https:";
+    const localBaseUrl = `${protocol}//${host}`;
+
+    let targetUrl = "";
+    if (isMockMode) {
+      if (action === "subir-archivos") {
+        // En modo mock, enviamos archivos a nuestro endpoint local oficial /api/visados/archivos
+        targetUrl = `${localBaseUrl}/api/visados/archivos`;
+      } else {
+        // En modo mock, categorías y registros van al mock general
+        targetUrl = `${localBaseUrl}/api/mock/caratulas`;
+      }
+      
+      // En modo local mock, el proxy tiene que enviar JSON para categorías/registros
+      if (action !== "subir-archivos" && typeof body === "string") {
+        body = JSON.stringify({
+          action,
+          payload: JSON.parse(body)
+        });
+      }
+    } else {
+      targetUrl = `${REMOTE_API}${endpoint}`;
+    }
+
+    console.log(`[Proxy] Redireccionando a: ${targetUrl}`);
+
+    // Hacer request al servidor correspondiente
+    const response = await fetch(targetUrl, {
       method,
       headers,
       body,
@@ -114,7 +145,6 @@ export async function POST(request: NextRequest) {
 
     if (!response.ok) {
       console.warn(`[Proxy] Respuesta ${response.status}:`, responseData);
-      // Igualmente devolvemos la respuesta del servidor remoto
     }
 
     return NextResponse.json(responseData, { status: response.status });

@@ -51,6 +51,10 @@ export interface ApiResponse<T = any> {
   data?: T;
   error?: string;
   message?: string;
+  code?: string;
+  details?: string[];
+  invalidFiles?: any[];
+  suggestions?: string[];
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -247,91 +251,165 @@ export async function enviarRegistro(
   }
 }
 
-/**
- * Sube archivos a un registro
- */
 export async function enviarArchivos(
   registroId: number,
   files: File[],
   tipo: "PLANO" | "MEMORIA" | "INFORME" | "OTRO" = "PLANO"
 ): Promise<ApiResponse> {
   try {
-    const MAX_FILES_PER_REQUEST = 5;
-    const MAX_FILE_SIZE_MB = 20;
-    const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
-    const ALLOWED_MIME = new Set([
-      "application/pdf",
-      "image/png",
-      "image/jpeg",
-      "image/webp",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    const MAX_FILES = 20; // Límite total de la carátula
+    const MAX_SINGLE_SIZE_MB = 3.0; // Límite estricto para evitar Vercel 4.5MB con overhead
+    const MAX_SINGLE_SIZE_BYTES = MAX_SINGLE_SIZE_MB * 1024 * 1024;
+    const MAX_TOTAL_SIZE_MB = 300;
+    const MAX_TOTAL_SIZE_BYTES = MAX_TOTAL_SIZE_MB * 1024 * 1024;
+
+    const ALLOWED_EXTENSIONS = new Set([
+      "pdf",
+      "png",
+      "jpg",
+      "jpeg",
+      "webp",
+      "docx",
+      "xlsx",
+      "zip",
+      "rar",
     ]);
+    const INVALID_CHARS_REGEX = /[<>:"\/\\|?*\x00-\x1F\x7F]/;
 
     if (!files || files.length === 0) {
       return { success: true, message: "Sin archivos para subir" };
     }
 
-    const { validFiles, ignoredFiles, invalidTypeFiles } = files.reduce(
-      (acc, file) => {
-        if (file.type && !ALLOWED_MIME.has(file.type)) {
-          acc.invalidTypeFiles.push({ name: file.name, type: file.type });
-          return acc;
-        }
-        if (file.size > MAX_FILE_SIZE_BYTES) {
-          acc.ignoredFiles.push({ name: file.name, sizeMB: file.size / 1024 / 1024 });
-        } else {
-          acc.validFiles.push(file);
-        }
-        return acc;
-      },
-      {
-        validFiles: [] as File[],
-        ignoredFiles: [] as Array<{ name: string; sizeMB: number }>,
-        invalidTypeFiles: [] as Array<{ name: string; type: string }>,
-      }
-    );
-
-    if (ignoredFiles.length > 0) {
-      console.warn(
-        "⚠️ Archivos ignorados por tamaño:",
-        ignoredFiles.map((f) => `${f.name} (${f.sizeMB.toFixed(2)} MB)`).join(", ")
-      );
-    }
-
-    if (invalidTypeFiles.length > 0) {
-      console.warn(
-        "⚠️ Archivos ignorados por tipo:",
-        invalidTypeFiles.map((f) => `${f.name} (${f.type || "tipo desconocido"})`).join(", ")
-      );
-    }
-
-    if (validFiles.length === 0) {
+    // 1. Validar cantidad máxima de archivos totales
+    if (files.length > MAX_FILES) {
       return {
         success: false,
-        error: `Todos los archivos exceden el límite de ${MAX_FILE_SIZE_MB} MB.`,
+        error: `Excede la cantidad máxima de archivos permitidos por carga (Límite: ${MAX_FILES}, enviado: ${files.length}).`,
+        code: "MAX_FILE_COUNT_EXCEEDED",
       };
     }
 
-    const totalBatches = Math.ceil(validFiles.length / MAX_FILES_PER_REQUEST);
-    if (totalBatches > 1) {
-      console.warn(
-        `⚠️ Se enviarán ${validFiles.length} archivos en ${totalBatches} lotes (máx ${MAX_FILES_PER_REQUEST} por request).`
-      );
+    // 2. Validar tamaño total, tamaño individual, formatos y caracteres
+    let totalSize = 0;
+    const oversizedFiles: string[] = [];
+    const invalidFormatFiles: string[] = [];
+    const invalidCharFiles: string[] = [];
+
+    for (const file of files) {
+      totalSize += file.size;
+
+      if (file.size > MAX_SINGLE_SIZE_BYTES) {
+        oversizedFiles.push(`${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
+      }
+
+      const parts = file.name.split(".");
+      const ext = parts.length > 1 ? parts.pop()?.toLowerCase() : "";
+      if (!ext || !ALLOWED_EXTENSIONS.has(ext)) {
+        invalidFormatFiles.push(`${file.name} (.${ext || "sin extensión"})`);
+      }
+
+      if (INVALID_CHARS_REGEX.test(file.name)) {
+        invalidCharFiles.push(file.name);
+      }
     }
 
-    const results: ApiResponse[] = [];
-    for (let i = 0; i < validFiles.length; i += MAX_FILES_PER_REQUEST) {
-      const batch = validFiles.slice(i, i + MAX_FILES_PER_REQUEST);
+    if (totalSize > MAX_TOTAL_SIZE_BYTES) {
+      return {
+        success: false,
+        error: `El tamaño total de la carga excede el límite de ${MAX_TOTAL_SIZE_MB} MB.`,
+        code: "MAX_TOTAL_SIZE_EXCEEDED",
+      };
+    }
 
+    if (oversizedFiles.length > 0) {
+      return {
+        success: false,
+        error: `Uno o varios archivos exceden el tamaño máximo individual de ${MAX_SINGLE_SIZE_MB} MB permitido por Vercel.`,
+        code: "MAX_SINGLE_SIZE_EXCEEDED",
+        details: oversizedFiles,
+        suggestions: [
+          `💡 El límite seguro para subidas en la nube es de ${MAX_SINGLE_SIZE_MB}MB.`,
+          "💡 Por favor, comprime tus archivos PDF o divídelos."
+        ]
+      };
+    }
+
+    if (invalidFormatFiles.length > 0) {
+      return {
+        success: false,
+        error: `Formato de archivo no permitido.`,
+        code: "INVALID_FILE_FORMAT",
+        details: invalidFormatFiles,
+      };
+    }
+
+    if (invalidCharFiles.length > 0) {
+      return {
+        success: false,
+        error: `Los nombres de archivo contienen caracteres especiales inválidos.`,
+        code: "INVALID_FILENAME_CHARS",
+        details: invalidCharFiles,
+      };
+    }
+
+    // 3. Validar nombres duplicados en la misma carga
+    const fileNames = files.map((f) => f.name);
+    const duplicates = fileNames.filter((name, idx) => fileNames.indexOf(name) !== idx);
+    if (duplicates.length > 0) {
+      return {
+        success: false,
+        error: "Se detectaron nombres de archivo duplicados en la misma carga.",
+        code: "DUPLICATE_FILES_IN_BATCH",
+        details: Array.from(new Set(duplicates)),
+      };
+    }
+
+    // 4. Batching Algorithm (Lotes Vercel-Safe)
+    const BATCH_MAX_FILES = 3;
+    const BATCH_MAX_SIZE_BYTES = 3.0 * 1024 * 1024; // 3.0MB limit to leave 1.5MB margin for FormData headers
+
+    interface FileBatch {
+      files: File[];
+      size: number;
+    }
+
+    const batches: FileBatch[] = [];
+    let currentBatch: FileBatch = { files: [], size: 0 };
+
+    for (const file of files) {
+      if (
+        currentBatch.files.length >= BATCH_MAX_FILES ||
+        currentBatch.size + file.size > BATCH_MAX_SIZE_BYTES
+      ) {
+        if (currentBatch.files.length > 0) {
+          batches.push(currentBatch);
+        }
+        currentBatch = { files: [file], size: file.size };
+      } else {
+        currentBatch.files.push(file);
+        currentBatch.size += file.size;
+      }
+    }
+    if (currentBatch.files.length > 0) {
+      batches.push(currentBatch);
+    }
+
+    // 5. Enviar lotes secuencialmente
+    const allArchivosSubidos = [];
+    const uploadSummary = { total_procesados: 0, exitosos: 0, fallidos: 0, tamanio_total: 0 };
+
+    for (let i = 0; i < batches.length; i++) {
+      const batch = batches[i];
       const formDataToProxy = new FormData();
       formDataToProxy.append("action", "subir-archivos");
       formDataToProxy.append("registro_id", String(registroId));
-      formDataToProxy.append("tipo", tipo || "PLANO");
+      formDataToProxy.append("tipo", tipo);
 
-      batch.forEach((file) => {
+      batch.files.forEach((file) => {
         formDataToProxy.append("files", file, file.name);
       });
+
+      console.log(`📤 Enviando lote ${i + 1}/${batches.length} con ${batch.files.length} archivos (${(batch.size / 1024 / 1024).toFixed(2)} MB)...`);
 
       const response = await fetch(LOCAL_API, {
         method: "POST",
@@ -339,27 +417,40 @@ export async function enviarArchivos(
       });
 
       const data = await response.json().catch(() => ({}));
+
       if (!response.ok) {
-        results.push({
+        return {
           success: false,
-          error: `Error al subir archivos: ${data.error || response.statusText}`,
-        });
-      } else {
-        results.push({ success: true, data, message: "Archivos subidos exitosamente" });
+          error: data.error || response.statusText || `Error al subir el lote ${i + 1}`,
+          code: data.status === 413 ? "PAYLOAD_TOO_LARGE" : data.status === 429 ? "RATE_LIMIT_EXCEEDED" : data.code || "API_ERROR",
+          details: data.details ? (Array.isArray(data.details) ? data.details : [data.details]) : [],
+          invalidFiles: data.invalidFiles,
+          suggestions: data.suggestions,
+        };
+      }
+
+      if (data.data && data.data.archivos_subidos) {
+        allArchivosSubidos.push(...data.data.archivos_subidos);
+      }
+      if (data.summary) {
+        uploadSummary.total_procesados += data.summary.total_procesados || 0;
+        uploadSummary.exitosos += data.summary.exitosos || 0;
+        uploadSummary.fallidos += data.summary.fallidos || 0;
+        uploadSummary.tamanio_total += data.summary.tamanio_total || 0;
       }
     }
 
-    const failed = results.find((r) => !r.success);
-    if (failed) {
-      return failed;
-    }
-
-    return { success: true, message: "Archivos subidos exitosamente" };
+    return { 
+      success: true, 
+      message: "Todos los lotes de archivos subidos exitosamente", 
+      data: { archivos_subidos: allArchivosSubidos, summary: uploadSummary } 
+    };
   } catch (error) {
     console.error("Error al subir archivos:", error);
     return {
       success: false,
       error: `Error al subir archivos: ${error instanceof Error ? error.message : String(error)}`,
+      code: "NETWORK_ERROR",
     };
   }
 }
@@ -372,37 +463,45 @@ export async function enviarCaratulaCompleta(
   categoria: Categoria,
   sha256?: string,
   pdfFile?: File,
-  archivosAdicionales?: File[]
-): Promise<ApiResponse<{ cod_hash?: string; registro_id?: number }>> {
+  archivosAdicionales?: File[],
+  existingRegistroId?: number
+): Promise<ApiResponse<{ cod_hash?: string; registro_id?: number, archivos_subidos?: any[] }>> {
   try {
-    console.log("📤 Iniciando envío de caratula completa...");
+    console.log("📤 Iniciando envío de caratula completa...", { existingRegistroId });
 
-    // 1. Enviar categoría
-    console.log("1️⃣ Enviando categoría...");
-    const catResult = await enviarCategoria(categoria);
-    if (!catResult.success) {
-      console.warn("⚠️ Advertencia al enviar categoría:", catResult.error);
-      // Continuamos de todas formas
-    }
-
-    // 2. Crear registro (con SHA256)
-    console.log("2️⃣ Creando registro...");
-    const regResult = await enviarRegistro(formData, categoria, sha256);
-    if (!regResult.success) {
-      return {
-        success: false,
-        error: `Error al crear registro: ${regResult.error}`,
-      };
-    }
-
-    const registroId = regResult.data?.id;
-    const codHash = regResult.data?.cod_hash;
+    let registroId = existingRegistroId;
+    let codHash = sha256;
 
     if (!registroId) {
-      return { success: false, error: "No se obtuvo ID de registro" };
+      // 1. Enviar categoría
+      console.log("1️⃣ Enviando categoría...");
+      const catResult = await enviarCategoria(categoria);
+      if (!catResult.success) {
+        console.warn("⚠️ Advertencia al enviar categoría:", catResult.error);
+      }
+
+      // 2. Crear registro (con SHA256)
+      console.log("2️⃣ Creando registro...");
+      const regResult = await enviarRegistro(formData, categoria, sha256);
+      if (!regResult.success) {
+        return {
+          success: false,
+          error: `Error al crear registro: ${regResult.error}`,
+        };
+      }
+
+      registroId = regResult.data?.id;
+      codHash = regResult.data?.cod_hash;
+
+      if (!registroId) {
+        return { success: false, error: "No se obtuvo ID de registro" };
+      }
+    } else {
+      console.log("⏭️ Usando registro existente:", registroId);
     }
 
     // 3. Subir archivos
+    let finalArchivosSubidos: any[] = [];
     const archivosParaSubir: File[] = [];
     if (pdfFile) archivosParaSubir.push(pdfFile);
     if (archivosAdicionales) archivosParaSubir.push(...archivosAdicionales);
@@ -411,14 +510,23 @@ export async function enviarCaratulaCompleta(
       console.log("3️⃣ Subiendo archivos...");
       const filesResult = await enviarArchivos(registroId, archivosParaSubir, "PLANO");
       if (!filesResult.success) {
-        console.warn("⚠️ Advertencia al subir archivos:", filesResult.error);
-        // Continuamos de todas formas - el registro está creado
+        console.warn("⚠️ Error al subir archivos:", filesResult.error);
+        return {
+          success: false,
+          error: filesResult.error,
+          code: filesResult.code,
+          details: filesResult.details,
+          invalidFiles: filesResult.invalidFiles,
+          suggestions: filesResult.suggestions,
+          data: { cod_hash: sha256 || codHash, registro_id: registroId, archivos_subidos: filesResult.data?.archivos_subidos || [] }
+        } as any;
       }
+      finalArchivosSubidos = filesResult.data?.archivos_subidos || [];
     }
 
     return {
       success: true,
-      data: { cod_hash: sha256 || codHash, registro_id: registroId },
+      data: { cod_hash: sha256 || codHash, registro_id: registroId, archivos_subidos: finalArchivosSubidos },
       message: "Caratula enviada exitosamente a la base de datos",
     };
   } catch (error) {

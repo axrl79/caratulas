@@ -16,7 +16,8 @@ import ModalAjustes from "./components/ModalAjustes";
 import Paso1Categoria from "./components/Paso1Categoria";
 import Paso2Formulario from "./components/Paso2Formulario";
 import Paso3Previa from "./components/Paso3Previa";
-import Paso4Descarga from "./components/Paso4Descarga";
+import Paso4Envio from "./components/Paso4Envio";
+import Paso5Descarga from "./components/Paso5Descarga";
 
 export default function Caratulas() {
   const [themeMode, setThemeMode] = useState<keyof typeof THEMES>("light"); 
@@ -157,52 +158,8 @@ export default function Caratulas() {
     formData, cat, documentQRUrl, format, documentSHA256, mainCat
   );
 }
-async function enviarABD(): Promise<void> {
-  if (!cat) return;
-
-  // Importar la función Blob que agregamos en generarPDF.ts
-  const { generarCaratulaPDFBlob } = await import("./generarPDF");
-
-  // Generar el PDF como Blob (no descarga, solo el archivo en memoria)
-  const pdfBlob = await generarCaratulaPDFBlob(
-    formData, cat, documentQRUrl, "letter", documentSHA256, mainCat
-  );
-
-  // Armar el paquete multipart con todo
-  const payload = new globalThis.FormData();
-
-  // Datos en texto/JSON
-  payload.append("sha256",        documentSHA256);
-  payload.append("fechaCreacion", new Date().toISOString());
-  payload.append("categoria", JSON.stringify({
-    code:       cat.code,
-    label:      cat.label,
-    disciplina: cat.disciplina,
-    mainCat:    mainCat,
-  }));
-  payload.append("formulario", JSON.stringify({
-    ...formData,
-    interesados: formData.interesados ?? [],
-  }));
-
-  // PDF generado
-  payload.append("caratulaPDF", pdfBlob, `${cat.code}_${documentSHA256}.pdf`);
-
-  // Archivos subidos por el usuario en Paso 3
-  filesMemoria.forEach(f =>   payload.append("memorias",  f, f.name));
-  filesPlanos.forEach(f =>    payload.append("planos",     f, f.name));
-  filesPlanosArq.forEach(f => payload.append("planosArq",  f, f.name));
-
-  // Enviar al backend — tu amigo pone su URL aquí
-  // ── Comentado hasta que el backend esté listo ──
-  // const res = await fetch("https://TU_BACKEND/api/caratulas", {
-  //   method: "POST",
-  //   body: payload,
-  // });
-  // if (!res.ok) throw new Error("Error al guardar en base de datos");
-
-  console.log("📦 Payload listo para BD:", Object.fromEntries(payload.entries()));
-}
+// Upload logic is now inside Paso4Envio.tsx
+// PDF generation is kept in hooks or called by the step directly.
 
 
   function resetForm() {
@@ -227,7 +184,7 @@ async function enviarABD(): Promise<void> {
     setFormData(prev => ({ ...prev, [key]: value }));
   };
 
-  const stepLabels = ["Categoría", "Datos", "Vista Previa", "Descargar"];
+  const stepLabels = ["Categoría", "Datos", "Vista Previa", "Envío", "Descargar"];
 function canNavigateTo(targetStep: number): boolean {
   if (targetStep === step) return false;
   if (selectedCat === null) return false;
@@ -343,8 +300,8 @@ function handleStepClick(targetStep: number) {
         background: isActive ? C.accent : isDone ? C.accentLight : "transparent", 
         color: isActive ? (themeMode === "light" ? "#fff" : C.deepGreen) : isDone ? C.accent : C.textMuted, 
         fontWeight: isActive ? 800 : 600, 
-        borderRight: (!isMobile && i < 3) ? `1px solid ${C.border}` : "none",
-        borderBottom: (isMobile && i < 2) ? `1px solid ${C.border}` : "none",
+        borderRight: (!isMobile && i < 4) ? `1px solid ${C.border}` : "none",
+        borderBottom: (isMobile && i < 3) ? `1px solid ${C.border}` : "none",
         transition: "all 0.3s",
         cursor: isClickable ? "pointer" : isActive ? "default" : "not-allowed",
         opacity: !isActive && !isDone && selectedCat === null ? 0.4 : 1,
@@ -427,21 +384,32 @@ function handleStepClick(targetStep: number) {
                 filesMemoria={filesMemoria}     setFilesMemoria={setFilesMemoria}
                 filesPlanos={filesPlanos}       setFilesPlanos={setFilesPlanos}
                 filesPlanosArq={filesPlanosArq} setFilesPlanosArq={setFilesPlanosArq}
-                onEnviarABD={enviarABD}
+                onEnviarABD={async () => {}} // Deprecated function, but keeping prop if child uses it
+
               />
             )}
             {step === 4 && cat && (
-              <Paso4Descarga 
+              <Paso4Envio 
                 C={C} themeMode={themeMode}
                 cat={cat} formData={formData}
-                downloadPDF={downloadPDF}
-                generatePDFBlob={generatePDFBlob}
-                documentQRUrl={documentQRUrl}
                 documentSHA256={documentSHA256}
                 mainCat={mainCat}
                 filesMemoria={filesMemoria}
                 filesPlanos={filesPlanos}
                 filesPlanosArq={filesPlanosArq}
+                generatePDFBlob={generatePDFBlob}
+                goBack={() => setStep(3)}
+                onSuccess={(registroId, codHash) => {
+                  setDocumentSHA256(codHash);
+                  setStep(5);
+                }}
+              />
+            )}
+            {step === 5 && cat && (
+              <Paso5Descarga 
+                C={C} themeMode={themeMode}
+                documentSHA256={documentSHA256}
+                downloadPDF={downloadPDF}
                 resetForm={resetForm}
               />
             )}
