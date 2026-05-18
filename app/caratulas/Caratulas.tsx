@@ -409,6 +409,8 @@ function handleStepClick(targetStep: number) {
               <Paso5Descarga 
                 C={C} themeMode={themeMode}
                 documentSHA256={documentSHA256}
+                cat={cat}
+                formData={formData}
                 downloadPDF={downloadPDF}
                 resetForm={resetForm}
               />
