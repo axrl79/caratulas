@@ -251,6 +251,58 @@ export async function enviarRegistro(
   }
 }
 
+export interface ArchivoExitoso {
+  id: string;
+  nombre_archivo: string;
+  tipo: string;
+  tamanio: number;
+  tipo_archivo: string;
+  createdAt: string;
+  url: string;
+}
+
+/**
+ * Consulta la API para obtener los archivos que se subieron correctamente a un registro
+ */
+export async function obtenerArchivosExitosos(codHash: string): Promise<ApiResponse<{ 
+  registro_id: number; 
+  cod_hash: string; 
+  archivos_exitosos: ArchivoExitoso[]; 
+  estadisticas: any; 
+}>> {
+  try {
+    const response = await fetch(LOCAL_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "archivos-exitosos",
+        payload: { cod_hash: codHash }
+      })
+    });
+    
+    const data = await response.json();
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error: data.error || "Error al obtener archivos exitosos",
+        details: data.details
+      };
+    }
+
+    return {
+      success: true,
+      data: data.data,
+      message: "Archivos recuperados exitosamente"
+    };
+  } catch (error) {
+    console.error("Error en obtenerArchivosExitosos:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : String(error)
+    };
+  }
+}
 export async function enviarArchivos(
   registroId: number,
   files: File[],

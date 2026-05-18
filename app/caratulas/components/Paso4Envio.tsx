@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Categoria, FormData } from "../data/diccionarios";
-import { enviarCaratulaCompleta } from "../data/apiIntegration";
+import { enviarCaratulaCompleta, obtenerArchivosExitosos, ArchivoExitoso } from "../data/apiIntegration";
 
 interface Paso4EnvioProps {
   C: any;
@@ -41,10 +41,43 @@ export default function Paso4Envio({
   const [createdRegistroId, setCreatedRegistroId] = useState<number | null>(null);
   const [createdCodHash, setCreatedCodHash] = useState<string | null>(null);
   const [successFileNames, setSuccessFileNames] = useState<Set<string>>(new Set());
+  const [serverFiles, setServerFiles] = useState<ArchivoExitoso[]>([]);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [replacedFiles, setReplacedFiles] = useState<Record<string, File>>({});
+
+  useEffect(() => {
+    if (!createdCodHash) return;
+    let isActive = true;
+    const fetchServerState = async () => {
+      setIsSyncing(true);
+      const res = await obtenerArchivosExitosos(createdCodHash);
+      if (isActive && res.success && res.data?.archivos_exitosos) {
+        setServerFiles(res.data.archivos_exitosos);
+        const newSet = new Set<string>();
+        res.data.archivos_exitosos.forEach(f => newSet.add(f.nombre_archivo));
+        setSuccessFileNames(newSet);
+      }
+      if (isActive) setIsSyncing(false);
+    };
+    fetchServerState();
+    return () => { isActive = false; };
+  }, [createdCodHash]);
+
+  const handleFileReplace = (originalName: string, newFile: File) => {
+    setReplacedFiles(prev => ({ ...prev, [originalName]: newFile }));
+  };
 
   const isLight = themeMode === "light";
   const allFiles = [...filesMemoria, ...filesPlanos, ...filesPlanosArq];
-  const pendingFiles = allFiles.filter(f => !successFileNames.has(f.name));
+  const pendingFiles = allFiles
+    .filter(f => {
+      // Is original file uploaded?
+      if (successFileNames.has(f.name)) return false;
+      // Is replaced file uploaded?
+      if (replacedFiles[f.name] && successFileNames.has(replacedFiles[f.name].name)) return false;
+      return true;
+    })
+    .map(f => replacedFiles[f.name] || f);
 
   const handleEnviarABD = async () => {
     if (!cat) return;
@@ -223,12 +256,34 @@ export default function Paso4Envio({
     <div style={{
       background: C.cardBg, border: `1px solid ${C.border}`, borderRadius: 20,
       padding: "clamp(20px, 5vw, 40px)", boxShadow: C.glow, backdropFilter: "blur(12px)",
-      animation: "fadeIn 0.4s ease"
+      animation: "fadeIn 0.4s ease", position: "relative"
     }}>
+      <style>{`
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+      `}</style>
+      
+      {/* ── Floating Server Status ── */}
+      {createdCodHash && (
+        <div style={{
+          position: "absolute", top: 24, right: 24, 
+          background: isLight ? "rgba(255, 255, 255, 0.8)" : "rgba(15, 36, 25, 0.8)", 
+          backdropFilter: "blur(12px)", border: `1px solid ${C.border}`, 
+          borderRadius: 16, padding: "10px 16px", display: "flex", alignItems: "center", 
+          gap: 12, boxShadow: C.glow, zIndex: 10
+        }}>
+          <div style={{ fontSize: "1.4em" }}>☁️</div>
+          <div>
+            <div style={{ fontSize: "0.65em", fontWeight: 800, textTransform: "uppercase", color: C.accent, letterSpacing: 1 }}>Estado Servidor</div>
+            <div style={{ fontWeight: 800, color: C.textMain, fontSize: "0.95em" }}>{successFileNames.size} / {allFiles.length + 1} Seguros</div>
+          </div>
+          {isSyncing && <div style={{ width: 14, height: 14, borderRadius: "50%", border: `2px solid ${C.accent}`, borderTopColor: "transparent", animation: "spin 1s linear infinite" }} />}
+        </div>
+      )}
+
       <h2 style={{ fontSize: "1.8em", fontWeight: 900, marginBottom: 10, color: C.textMain }}>
         Resumen y Envío
       </h2>
-      <p style={{ color: C.textMuted, fontSize: "1em", marginBottom: 30, lineHeight: 1.5 }}>
+      <p style={{ color: C.textMuted, fontSize: "1em", marginBottom: 30, lineHeight: 1.5, maxWidth: "80%" }}>
         Por favor revisa la información de tu trámite antes de enviarla al Departamento de Visados de la SIB.
       </p>
 
@@ -271,11 +326,27 @@ export default function Paso4Envio({
             <li style={{ color: successFileNames.has(`${cat.code}_${documentSHA256}.pdf`) ? "#10b981" : C.textMain }}>
               📄 Carátula Generada PDF {successFileNames.has(`${cat.code}_${documentSHA256}.pdf`) && "✅"}
             </li>
-            {allFiles.map((f, i) => (
-              <li key={i} style={{ color: successFileNames.has(f.name) ? "#10b981" : C.textMain }}>
-                {f.name} ({(f.size / 1024 / 1024).toFixed(2)} MB) {successFileNames.has(f.name) && "✅"}
-              </li>
-            ))}
+            {allFiles.map((f, i) => {
+              const currentFile = replacedFiles[f.name] || f;
+              const isSuccess = successFileNames.has(currentFile.name) || successFileNames.has(f.name);
+              
+              return (
+                <li key={i} style={{ color: isSuccess ? "#10b981" : C.textMain, display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: `1px dashed ${C.border}`, paddingBottom: 8 }}>
+                  <span>
+                    {replacedFiles[f.name] && <span style={{ fontSize: "0.8em", background: C.accent, color: isLight ? "#fff" : C.deepGreen, padding: "2px 6px", borderRadius: 4, marginRight: 8, fontWeight: 800 }}>MODIFICADO</span>}
+                    {currentFile.name} ({(currentFile.size / 1024 / 1024).toFixed(2)} MB) {isSuccess && "✅"}
+                  </span>
+                  {!isSuccess && (
+                     <label style={{ fontSize: "0.8em", cursor: "pointer", color: C.accent, fontWeight: 700, padding: "4px 10px", borderRadius: 6, background: `${C.accent}15` }}>
+                       Reemplazar
+                       <input type="file" style={{ display: "none" }} onChange={(e) => {
+                         if (e.target.files?.[0]) handleFileReplace(f.name, e.target.files[0]);
+                       }} />
+                     </label>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </div>
       </div>
@@ -338,13 +409,31 @@ export default function Paso4Envio({
                   <div style={{ marginTop: 14, borderTop: `1px solid ${C.border}`, paddingTop: 14 }}>
                     <div style={{ fontSize: "0.82em", fontWeight: 800, color: config.color, marginBottom: 10 }}>Archivos Rechazados ({errorModal.invalidFiles.length}):</div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 12, maxHeight: 180, overflowY: "auto" }}>
-                      {errorModal.invalidFiles.map((item, idx) => (
-                        <div key={idx} style={{ background: isLight ? "#fbfbfb" : "rgba(255, 255, 255, 0.02)", padding: 12, borderRadius: 10, border: `1px solid ${C.border}` }}>
-                          <div style={{ fontWeight: 800 }}>{errorModal.code === "INVALID_FILENAME_CHARS" ? highlightFilename(item.nombre) : item.nombre}</div>
-                          {item.errores && <ul style={{ color: "#ef4444", fontSize: "0.9em", paddingLeft: 18 }}>{item.errores.map((e,i) => <li key={i}>{e}</li>)}</ul>}
-                          {item.sugerencias && <ul style={{ color: "#10b981", fontSize: "0.9em", paddingLeft: 18 }}>{item.sugerencias.map((s,i) => <li key={i}>{s}</li>)}</ul>}
-                        </div>
-                      ))}
+                      {errorModal.invalidFiles.map((item, idx) => {
+                        const originalFile = allFiles.find(f => f.name === item.nombre);
+                        const isReplaced = originalFile && replacedFiles[originalFile.name];
+
+                        return (
+                          <div key={idx} style={{ background: isLight ? "#fbfbfb" : "rgba(255, 255, 255, 0.02)", padding: 12, borderRadius: 10, border: `1px solid ${C.border}` }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                              <div style={{ fontWeight: 800 }}>
+                                {errorModal.code === "INVALID_FILENAME_CHARS" ? highlightFilename(item.nombre) : item.nombre}
+                                {isReplaced && <span style={{ marginLeft: 8, fontSize: "0.7em", background: C.accent, color: isLight ? "#fff" : C.deepGreen, padding: "2px 6px", borderRadius: 4 }}>REEMPLAZADO</span>}
+                              </div>
+                              {originalFile && !isReplaced && (
+                                <label style={{ fontSize: "0.75em", cursor: "pointer", color: isLight ? "#fff" : C.deepGreen, background: config.color, padding: "4px 10px", borderRadius: 6, fontWeight: 700 }}>
+                                  Corregir Archivo
+                                  <input type="file" style={{ display: "none" }} onChange={(e) => {
+                                    if (e.target.files?.[0]) handleFileReplace(originalFile.name, e.target.files[0]);
+                                  }} />
+                                </label>
+                              )}
+                            </div>
+                            {item.errores && <ul style={{ color: "#ef4444", fontSize: "0.9em", paddingLeft: 18, marginTop: 8 }}>{item.errores.map((e,i) => <li key={i}>{e}</li>)}</ul>}
+                            {item.sugerencias && <ul style={{ color: "#10b981", fontSize: "0.9em", paddingLeft: 18 }}>{item.sugerencias.map((s,i) => <li key={i}>{s}</li>)}</ul>}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 ) : errorModal.details && errorModal.details.length > 0 && (

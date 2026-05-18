@@ -57,6 +57,12 @@ export async function POST(request: NextRequest) {
         body = JSON.stringify(payload);
         break;
 
+      case "archivos-exitosos":
+        endpoint = `/api/visados/archivos-exitosos?cod_hash=${payload.cod_hash}`;
+        method = "GET";
+        body = undefined;
+        break;
+
       case "subir-archivos":
         endpoint = "/api/visados/archivos";
 
@@ -116,6 +122,8 @@ export async function POST(request: NextRequest) {
       if (action === "subir-archivos") {
         // En modo mock, enviamos archivos a nuestro endpoint local oficial /api/visados/archivos
         targetUrl = `${localBaseUrl}/api/visados/archivos`;
+      } else if (action === "archivos-exitosos") {
+        targetUrl = `${localBaseUrl}${endpoint}`;
       } else {
         // En modo mock, categorías y registros van al mock general
         targetUrl = `${localBaseUrl}/api/mock/caratulas`;
