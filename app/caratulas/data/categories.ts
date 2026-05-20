@@ -42,7 +42,7 @@ export const CATEGORIAS: Categoria[] = [
     label: "Proyecto Estructural – Puente o Viaducto",
     titulo_caratula: "PROYECTO ESTRUCTURAL", subtitulo_caratula: "– Puente o Viaducto",
     hasPlanos: true,
-    active: ["coordenadas","municipio","luzPuente","superfTableroCon","areaMuroEst","norma",
+    active: ["coordenadas","municipio","luzPuente","superfTablero","areaMuroEst","norma",
              "interesado","ingNombre","rni","tienePlanos","numPlanos","numCopias"],
   },
   {

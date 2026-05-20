@@ -49,7 +49,7 @@ export const CATEGORY_FIELD_RULES: Record<string, Partial<Record<FieldKey, Field
     coordenadas:   { required: true,  decimals: false },
     municipio:     { required: true,  decimals: false },
     luzPuente:     { required: true,  decimals: true  },
-    superfTableroCon:{ required: true,  decimals: true  },
+    superfTablero:{ required: true,  decimals: true  },
     areaMuroEst:   { required: true,  decimals: true  },
     norma:         { required: true,  decimals: false },
     interesado:    { required: true,  decimals: false },

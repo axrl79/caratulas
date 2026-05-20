@@ -261,12 +261,15 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
     // PES1 — Edificación
     return {
       title: "Área de Muro de Contención a Construir (m²) — Edificación",
-      description: "Se debe considerar la sumatoria total del área de los muros de contención en m². Deberá consignarse con una precisión de dos decimales. Se deberá presentar el Cuadro de Cálculo de Áreas de muros de Contención obligatoriamente. El área se obtiene multiplicando la altura total del muro (incluyendo el desplante de la cimentación) por su longitud. En el caso de muros de contención con altura variable, se deberá registrar en la columna 'H' el rango de variación de alturas y en la columna 'A' el área calculada, el área se obtiene multiplicando la altura total del muro (incluyendo el desplante de la cimentación) por su longitud. En el caso de muros de contención con altura variable, se deberá registrar en la columna 'H' el rango de variación de alturas y en la columna 'A' el área calculada.",
+      description: "Se debe considerar la sumatoria total del área de los muros de contención en m². Deberá consignarse con una precisión de dos decimales.",
       example: "62.70",
       tableTitle: "Cuadro de Cálculo de áreas de muros de contención",
       table: tablaComun,
       notesTitle: "Notas Importantes",
       notes: [
+        "Se deberá presentar el Cuadro de Cálculo de Áreas de muros de Contención obligatoriamente (Excepto cuando la estructura no incorpore muros de contención).",
+        "El valor total se colocará en la carátula y en la hoja correspondiente",
+        "El área se obtiene multiplicando la altura total del muro (incluyendo el desplante de la cimentación) por su longitud. En el caso de muros de contención con altura variable, se deberá registrar en la columna 'H' el rango de variación de alturas y en la columna 'A' el área calculada.",
         "Altura y longitud con precisión de dos decimales.",
         "Se debe colocar un esquema en planta de la posición de los muros resaltados.",
         "En caso de estructura sin muro de contención, indicar: \"no corresponde\" y no se adjunta el cuadro.",
@@ -623,7 +626,7 @@ function getDynamicGuide(key: string, cat: Categoria | null): GuideContent | nul
     "superfProspeccion": {
       title: "Superficie de Prospección (ha)",
       description: "Área total del terreno prospectado en el estudio geológico, expresada en m².",
-      example: "1.250",
+      example: "1250",
       notes: ["Expresar en hectáreas con tres decimales."],
     },
     "superfReforzar": {
